@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant BEAT as celery-beat
+    participant W as celery-worker
+    participant GLPI as API GLPI
+    participant LS as Logstash
+    participant ES as Elasticsearch
+
+    loop Chaque heure (crontab minute=0)
+        BEAT->>W: sync_glpi_to_elk
+        W->>GLPI: GET /apirest.php/Ticket (état, statut, assignation)
+        GLPI-->>W: tickets[]
+        W->>W: normalisation + enrichissement
+        W->>LS: POST documents glpi-*
+        LS->>ES: indexation glpi-*
+        Note over W,ES: Synchronise l'état des tickets pour les tableaux de bord
+    end

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7aa2f7"/>
+      <stop offset="1" stop-color="#bb9af7"/>
+    </linearGradient>
+  </defs>
+  <!-- bouclier -->
+  <path d="M60 8 L104 24 V60 c0 30-20 46-44 54 C36 106 16 90 16 60 V24 Z"
+        fill="#16161e" stroke="url(#g)" stroke-width="4"/>
+  <!-- œil -->
+  <path d="M28 62 Q60 34 92 62 Q60 88 28 62 Z" fill="none" stroke="url(#g)" stroke-width="4"/>
+  <circle cx="60" cy="61" r="13" fill="url(#g)"/>
+  <circle cx="60" cy="61" r="5" fill="#16161e"/>
+  <circle cx="64" cy="57" r="2.6" fill="#c0caf5"/>
+</svg>

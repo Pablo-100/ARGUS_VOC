@@ -1,0 +1,51 @@
+flowchart TB
+    subgraph HOST["Hôte VMware 192.168.184.135 - Ubuntu Server"]
+        subgraph DOCKER["Docker Engine"]
+            subgraph APP["Couche applicative"]
+                ELASTIC["Elasticsearch :9200"]
+                KIBANA["Kibana :5601"]
+                LOGSTASH["Logstash :5044"]
+                FLEETSRV["Fleet Server :8220"]
+                RISK["Moteur de risque :8000"]
+                GLPI["GLPI :8080"]
+                MISP["MISP :8443"]
+                MARIADB["MariaDB :3306"]
+                RABBIT["RabbitMQ :5672"]
+                REDIS["Redis :6379"]
+            end
+            subgraph PIPELINE["Pipeline Celery"]
+                BEAT["celery-beat"]
+                WORKER["celery-worker"]
+            end
+            subgraph COLLECT["Collecte (5 Beats)"]
+                FB["Filebeat"]
+                MB["Metricbeat"]
+                PB["Packetbeat"]
+                AB["Auditbeat"]
+                HB["Heartbeat"]
+            end
+        end
+    end
+
+    subgraph EXTERNAL["Hôtes externes"]
+        TBINI["VM tbini 192.168.184.138<br/>Elastic Agent (linux_hosts)"]
+        LAN["LAN 192.168.1.0/24<br/>hôtes scannés"]
+    end
+
+    BEAT --> WORKER
+    WORKER --> RABBIT
+    WORKER --> REDIS
+    WORKER --> ELASTIC
+    WORKER --> LOGSTASH
+    WORKER --> GLPI
+    WORKER --> MISP
+    WORKER --> RISK
+    LOGSTASH --> ELASTIC
+    ELASTIC <--> KIBANA
+    FB --> ELASTIC
+    MB --> ELASTIC
+    PB --> ELASTIC
+    AB --> ELASTIC
+    HB --> ELASTIC
+    TBINI -->|HTTPS :8220| FLEETSRV
+    LAN -->|nmap :9200 sortie données| ELASTIC

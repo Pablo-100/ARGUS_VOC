@@ -1,0 +1,40 @@
+---
+# Déploiement + enrôlement Elastic Agent Fleet (pour les NOUVELLES machines)
+- name: Vérifier si un agent est déjà installé
+  stat:
+    path: /opt/Elastic/Agent/elastic-agent
+  register: agent_bin
+
+- name: Télécharger Elastic Agent 8.11.0
+  get_url:
+    url: "https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-8.11.0-linux-x86_64.tar.gz"
+    dest: /tmp/elastic-agent.tar.gz
+    mode: '0644'
+  when: not agent_bin.stat.exists
+
+- name: Extraire l'archive
+  unarchive:
+    src: /tmp/elastic-agent.tar.gz
+    dest: /tmp
+    remote_src: yes
+  when: not agent_bin.stat.exists
+
+- name: Enrôler et installer l'agent auprès du Fleet Server VOC
+  shell: >
+    cd /tmp/elastic-agent-8.11.0-linux-x86_64 &&
+    sudo ./elastic-agent install -n
+    --url={{ fleet_url }}
+    --enrollment-token={{ fleet_enrollment_token }}
+    --non-interactive --force
+  args:
+    executable: /bin/bash
+  when: not agent_bin.stat.exists
+
+- name: Statut final
+  command: /opt/Elastic/Agent/elastic-agent status
+  register: ag_status
+  changed_when: false
+  failed_when: false
+
+- debug:
+    msg: "{{ inventory_hostname }} : agent {{ 'DEJA PRESENT' if agent_bin.stat.exists else 'INSTALLE' }} — {{ ag_status.stdout_lines[0] if ag_status.stdout else '' }}"

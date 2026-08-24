@@ -1,0 +1,28 @@
+flowchart TB
+    IN["RiskInput<br/>cvss_base, is_critical_asset,<br/>misp_threat_active, exploit_available,<br/>network_exposure, epss_score, in_kev"]
+    BASE["score = cvss_base"]
+    C1{"is_critical_asset?"}
+    C2{"misp_threat_active?"}
+    C3{"exploit_available?"}
+    C4{"network_exposure > 0?"}
+    C5{"in_kev?"}
+    C6{"epss >= 0.5?"}
+    CAP["final = min(score, 10)"]
+    SEV["severity:<br/>&gt;=9 Critical | &gt;=7 High<br/>&gt;=4 Medium | else Low"]
+    OUT["RiskOutput<br/>risk_score, severity, factors"]
+
+    IN --> BASE
+    BASE --> C1
+    C1 -->|"+ cvss x 0.5"| C2
+    C1 -->|no| C2
+    C2 -->|"+ 2.0"| C3
+    C2 -->|no| C3
+    C3 -->|"+ 1.5"| C4
+    C3 -->|no| C4
+    C4 -->|"+ exposure x 2"| C5
+    C4 -->|no| C5
+    C5 -->|"+ KEV_BOOST 2.0"| C6
+    C5 -->|no| C6
+    C6 -->|"+ EPSS_BOOST 1.0"| CAP
+    C6 -->|no| CAP
+    CAP --> SEV --> OUT

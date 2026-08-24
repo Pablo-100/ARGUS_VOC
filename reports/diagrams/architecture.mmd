@@ -1,0 +1,45 @@
+flowchart TB
+    subgraph NET["Réseaux scannés"]
+        LAN["LAN 192.168.1.0/24<br/>routeurs, WAP, postes"]
+        SPA["SPA 192.168.184.0/24<br/>plateforme .135, VM tbini .138"]
+    end
+
+    subgraph PIPELINE["Pipeline Celery"]
+        BEAT["Celery Beat<br/>démarrage + toutes les 6 h"]
+        W["Celery Worker<br/>scan, enrich, score, index, ticket"]
+        RMQ["RabbitMQ"]
+        RD["Redis"]
+    end
+
+    subgraph INTEL["Intelligence sur les menaces"]
+        MISP["MISP"]
+        NVD["NVD"]
+        TI["EPSS, CISA KEV,<br/>OSV, Exploit-DB"]
+    end
+
+    subgraph STOCK["Stockage & visualisation"]
+        RE["Moteur de risque<br/>FastAPI :8000"]
+        LS["Logstash :5044"]
+        ES["Elasticsearch :9200"]
+        KB["Kibana :5601"]
+    end
+
+    ITSM["GLPI :8080"]
+    FLEET["Fleet Server<br/>Elastic Agent :8220"]
+    OBS["5 Beats + Elastic Agent<br/>logs, métriques, trafic, audit, uptime"]
+
+    LAN -->|nmap -sS -sV -O -p- -T4| W
+    SPA -->|enrôlement agents| FLEET
+    BEAT --> RMQ
+    RMQ --> W
+    W <--> RD
+    W -->|enrich| MISP
+    W -->|enrich| NVD
+    W -->|enhance| TI
+    W -->|score| RE
+    W -->|index| LS
+    LS --> ES
+    ES <--> KB
+    W -->|ticket si risque >= 7| ITSM
+    FLEET --> OBS
+    OBS --> ES

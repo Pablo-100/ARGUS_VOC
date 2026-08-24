@@ -1,0 +1,6 @@
+---
+- name: VOC — préparation des machines Linux du réseau
+  hosts: voc_linux
+  become: yes
+  roles:
+    - common_logging

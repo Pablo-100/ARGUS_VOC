@@ -1,0 +1,17 @@
+server.name: voc-kibana
+server.host: "0.0.0.0"
+server.port: 5601
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.username: "voc-kibana"
+monitoring.ui.container.elasticsearch.enabled: true
+xpack.security.enabled: true
+
+# Secrets are intentionally NOT stored here. They are injected at runtime by
+# the Docker environment variables (see docker-compose.yml / .env):
+#   ELASTICSEARCH_PASSWORD                      -> elasticsearch.password
+#   XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY   -> xpack.encryptedSavedObjects.encryptionKey
+#   XPACK_SECURITY_ENCRYPTIONKEY                -> xpack.security.encryptionKey
+#   XPACK_REPORTING_ENCRYPTIONKEY               -> xpack.reporting.encryptionKey
+# NOTE: full iframe embedding of dashboards requires Kibana >= 8.14
+# (xpack.iFrameEmbedding.enabled). On 8.11 the portal uses its native
+# Dashboards tab instead; upgrade path documented in README.

@@ -1,0 +1,16 @@
+<nmaprun scanner="nmap">
+<host starttime="1" endtime="2">
+  <status state="up"/>
+  <address addr="192.168.1.18" addrtype="ipv4"/>
+  <hostscript>
+    <script id="smb-vuln-ms17-010" output="
+VULNERABLE:
+Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)
+  State: VULNERABLE
+  IDs:  CVE:CVE-2017-0143
+  Risk factor: HIGH
+  A critical remote code execution vulnerability exists in Microsoft SMBv1
+"/>
+  </hostscript>
+</host>
+</nmaprun>

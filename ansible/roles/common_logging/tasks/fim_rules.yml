@@ -1,0 +1,17 @@
+---
+- name: Règles audit FIM persistantes
+  copy:
+    dest: /etc/audit/rules.d/voc-fim.rules
+    content: |
+      -w /etc -p wa -k voc-fim
+      -w /home -p wa -k voc-fim
+      -w /root -p wa -k voc-fim
+      -w /tmp -p wa -k voc-fim
+  notify: reload_audit_rules
+
+- name: Activer le pont auditd -> syslog
+  lineinfile:
+    path: /etc/audit/plugins.d/syslog.conf
+    regexp: '^active'
+    line: 'active = yes'
+  notify: restart_auditd

@@ -1,0 +1,346 @@
+{
+  "benchmarks": {
+    "nginx": {
+      "benchmark": "CIS NGINX Benchmark 1.4",
+      "sections": ["1.1", "1.2", "1.4", "2.1", "2.3"],
+      "hardening": [
+        "Keep NGINX updated to the latest stable version and track CVEs.",
+        "Disable unnecessary modules (--without-http_* compile-time flags).",
+        "Restrict server_tokens to hide version and set a sane server name.",
+        "Set strong TLS configuration: TLS 1.2+, approved cipher suites, OCSP stapling.",
+        "Limit request size, body size, and rate per IP (limit_req / limit_conn).",
+        "Run workers with least privilege; avoid root and restrict config file permissions (640).",
+        "Place worker processes under a dedicated unprivileged user."
+      ]
+    },
+    "apache": {
+      "benchmark": "CIS Apache HTTP Server Benchmark 2.4",
+      "sections": ["1.4", "2.2", "2.4", "2.5", "3.2"],
+      "hardening": [
+        "Keep Apache and modules updated to patched versions.",
+        "Hide version and OS details (ServerTokens Prod, ServerSignature Off).",
+        "Disable unneeded modules and default/example content.",
+        "Enable TLS 1.2+, modern cipher suites, and secure headers.",
+        "Enforce access controls with Allow/Require and limit HTTP methods.",
+        "Run under an unprivileged user with least privilege on DocumentRoot.",
+        "Set file/dir permissions to 755/644 or tighter and review .htaccess usage."
+      ]
+    },
+    "openssh": {
+      "benchmark": "CIS OpenSSH Server Benchmark 1.1",
+      "sections": ["1.1", "2.2", "3.4"],
+      "hardening": [
+        "Upgrade OpenSSH to the latest patched release.",
+        "Set Protocol 2, disable empty passwords, and enforce strong key exchange algorithms.",
+        "Limit root login (PermitRootLogin no) and use key-based authentication.",
+        "Restrict allowed users/groups (AllowUsers / AllowGroups).",
+        "Configure IdleTimeoutInterval and MaxAuthTries limits.",
+        "Set strong MACs and ciphers per CIS guidance.",
+        "Consider fail2ban or TCP wrappers for brute-force protection."
+      ]
+    },
+    "mysql": {
+      "benchmark": "CIS MySQL / MariaDB Benchmark 1.2",
+      "sections": ["1", "2", "3", "4", "5", "6", "7"],
+      "hardening": [
+        "Upgrade to a vendor-supported patched MySQL/MariaDB version.",
+        "Run MySQL under a dedicated unprivileged user, not root.",
+        "Restrict network exposure; bind to localhost or specific interfaces.",
+        "Use strong passwords, remove anonymous accounts, and enforce password policy.",
+        "Enable TLS for client-server connections where applicable.",
+        "Apply least-privilege grants; remove unnecessary privileges (FILE, SUPER).",
+        "Disable unused storage engines and plugins; set secure defaults."
+      ]
+    },
+    "redis": {
+      "benchmark": "CIS Redis Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade Redis to the latest patched version.",
+        "Enable requirepass and never expose Redis to the public internet.",
+        "Bind to localhost/internal interfaces and disable protected-mode bypass.",
+        "Rename/disable dangerous commands (CONFIG, EVAL, FLUSHALL) via rename-command.",
+        "Run Redis under a dedicated unprivileged user.",
+        "Restrict persistence file permissions and backups."
+      ]
+    },
+    "elasticsearch": {
+      "benchmark": "CIS Elasticsearch Benchmark 1.0",
+      "sections": ["1", "2", "3", "4"],
+      "hardening": [
+        "Upgrade Elasticsearch to a patched supported release.",
+        "Enable and enforce X-Pack security with strong passwords.",
+        "Bind to internal interfaces and restrict transport/http to trusted networks.",
+        "Apply least-privilege roles (read-only users, restricted indices).",
+        "Enable audit logging and monitoring.",
+        "Disable dynamic scripting and restrict file/network functionality."
+      ]
+    },
+    "postgresql": {
+      "benchmark": "CIS PostgreSQL Benchmark 1.1",
+      "sections": ["1", "2", "3", "4", "5"],
+      "hardening": [
+        "Upgrade PostgreSQL to the latest patched minor release.",
+        "Restrict pg_hba.conf authentication methods and source addresses.",
+        "Use strong passwords/scram-sha-256 and revoke PUBLIC schema privileges.",
+        "Run under a dedicated unprivileged OS user.",
+        "Enable SSL with valid certificates for client connections.",
+        "Apply least-privilege grants and disable unnecessary extensions."
+      ]
+    },
+    "mongodb": {
+      "benchmark": "CIS MongoDB Benchmark 1.0",
+      "sections": ["1", "2", "3", "4", "5"],
+      "hardening": [
+        "Upgrade MongoDB to a patched supported version.",
+        "Enable authentication and create least-privilege roles.",
+        "Bind to trusted interfaces; never expose to the internet without ACL.",
+        "Enable TLS/SSL for client and internal communication.",
+        "Restrict access to the data directory and configuration files.",
+        "Enable auditing and rotate credentials."
+      ]
+    },
+    "docker": {
+      "benchmark": "CIS Docker Benchmark 1.6",
+      "sections": ["1", "2", "3", "4", "5"],
+      "hardening": [
+        "Keep the Docker daemon and base images updated.",
+        "Use non-root users inside containers and drop unnecessary capabilities.",
+        "Scan images for vulnerabilities before deployment.",
+        "Set resource limits (CPU, memory) on all containers.",
+        "Restrict network exposure and use secrets management instead of env vars.",
+        "Configure log shipping and audit daemon events.",
+        "Apply CIS Docker Benchmark controls 1-5."
+      ]
+    },
+    "php": {
+      "benchmark": "CIS PHP Benchmark 1.2",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade PHP to a vendor-supported patched version.",
+        "Set secure PHP configuration: display_errors=Off in production, error_reporting=On.",
+        "Disable dangerous functions (exec, system, passthru, shell_exec) if not needed.",
+        "Set open_basedir restrictions and upload limits.",
+        "Disable allow_url_include and disable deprecated features.",
+        "Apply least privilege to the PHP-FPM worker and restrict file permissions."
+      ]
+    },
+    "tomcat": {
+      "benchmark": "CIS Apache Tomcat Benchmark 1.0",
+      "sections": ["1", "2", "3", "4", "5"],
+      "hardening": [
+        "Upgrade to a patched Apache Tomcat release.",
+        "Remove default applications (manager, host-manager, examples, ROOT).",
+        "Restrict manager/host-manager by IP and strong credentials.",
+        "Run Tomcat as an unprivileged user with a locked-down webapps dir.",
+        "Set secure connectors (TLS 1.2+, no weak ciphers, httpOnly cookies).",
+        "Set secure valves/filters (CSRF, XSS) and hide server version."
+      ]
+    },
+    "gitlab": {
+      "benchmark": "CIS GitLab Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade GitLab to the latest patched release.",
+        "Enforce 2FA and SSO for user accounts.",
+        "Restrict sign-up and project visibility policies.",
+        "Enable security features: secret detection, SAST/DAST, dependency scanning.",
+        "Set secure TLS configuration and restrict admin access.",
+        "Apply least-privilege access tokens and rotate regularly."
+      ]
+    },
+    "grafana": {
+      "benchmark": "CIS Grafana Benchmark 1.0",
+      "sections": ["1", "2"],
+      "hardening": [
+        "Upgrade Grafana to a patched release.",
+        "Enable authentication and disable anonymous access unless required.",
+        "Protect the admin account with a strong password / SSO.",
+        "Configure TLS for the web server and encrypt data source credentials.",
+        "Restrict network exposure and apply least-privilege viewer roles."
+      ]
+    },
+    "jenkins": {
+      "benchmark": "CIS Jenkins Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade Jenkins to the latest LTS patched release.",
+        "Enable authentication, CSRF protection, and role-based access control.",
+        "Restrict access to Jenkins UI via network ACLs.",
+        "Secure the Jenkins CLI and Groovy scripting access.",
+        "Harden the Jenkins home directory permissions and backups."
+      ]
+    },
+    "wordpress": {
+      "benchmark": "CIS WordPress Benchmark 1.0",
+      "sections": ["1", "2", "3", "4", "5"],
+      "hardening": [
+        "Keep WordPress core, themes, and plugins updated.",
+        "Enforce strong passwords and 2FA for administrators.",
+        "Disable XML-RPC unless required and restrict file editing.",
+        "Harden wp-config.php and protect wp-admin with IP allow-lists.",
+        "Set secure file permissions (644/755) and database least privilege.",
+        "Install a WAF and security monitoring plugin."
+      ]
+    },
+    "drupal": {
+      "benchmark": "CIS Drupal Benchmark 1.0",
+      "sections": ["1", "2", "3", "4"],
+      "hardening": [
+        "Keep Drupal core and modules updated to patched versions.",
+        "Restrict admin access and enforce strong passwords/2FA.",
+        "Harden file permissions and protect settings.php.",
+        "Configure HTTPS and secure cookies (httpOnly, secure).",
+        "Apply least-privilege database user."
+      ]
+    },
+    "samba": {
+      "benchmark": "CIS Samba Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade Samba to a patched version.",
+        "Restrict SMB protocol versions (disable SMBv1).",
+        "Enforce authentication with strong passwords and account lockouts.",
+        "Restrict shares and filesystem permissions to least privilege.",
+        "Bind SMB services to trusted interfaces only."
+      ]
+    },
+    "snmp": {
+      "benchmark": "CIS SNMP Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade net-snmp to a patched version.",
+        "Disable SNMP if not required; otherwise use SNMPv3 with auth/privacy.",
+        "Restrict SNMP access by source IP and community string.",
+        "Set strong SNMPv3 users and disable default community strings."
+      ]
+    },
+    "vsftpd": {
+      "benchmark": "CIS vsftpd Benchmark 1.0",
+      "sections": ["1", "2"],
+      "hardening": [
+        "Upgrade vsftpd to the latest patched version.",
+        "Disable anonymous access and enforce strong authentication.",
+        "Restrict FTP to internal networks or replace with SFTP.",
+        "Enable TLS/FTPS and set secure umask/permissions on the FTP root."
+      ]
+    },
+    "proftpd": {
+      "benchmark": "CIS ProFTPD Benchmark 1.0",
+      "sections": ["1", "2"],
+      "hardening": [
+        "Upgrade ProFTPD to the latest patched version.",
+        "Disable anonymous access and require strong credentials.",
+        "Restrict FTP exposure or migrate to SFTP.",
+        "Enable TLS and set restrictive chroot and permissions."
+      ]
+    },
+    "exim": {
+      "benchmark": "CIS Exim Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade Exim to a patched release.",
+        "Disable insecure features (runas_router, verify) and unused services.",
+        "Restrict relay and enforce authentication for mail submission.",
+        "Run Exim with least privilege and a locked-down configuration."
+      ]
+    },
+    "rabbitmq": {
+      "benchmark": "CIS RabbitMQ Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade RabbitMQ to a patched release.",
+        "Use strong credentials and TLS for client and clustering connections.",
+        "Restrict management UI and API to trusted networks.",
+        "Apply least-privilege vhost/user permissions.",
+        "Enable queue/connection limits to prevent resource exhaustion."
+      ]
+    },
+    "memcached": {
+      "benchmark": "CIS Memcached Benchmark 1.0",
+      "sections": ["1", "2"],
+      "hardening": [
+        "Upgrade memcached to a patched version.",
+        "Bind to trusted interfaces only (never expose to the internet).",
+        "Enable SASL authentication.",
+        "Restrict access with firewall rules."
+      ]
+    },
+    "nfs": {
+      "benchmark": "CIS NFS Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade NFS server/client to patched versions.",
+        "Restrict NFS exports to trusted hosts/networks via /etc/exports.",
+        "Use AUTH_SYS with restrictive export options or Kerberos (sec=krb5p).",
+        "Restrict NFS port range with firewall rules."
+      ]
+    },
+    "ftp": {
+      "benchmark": "CIS FTP Benchmark 1.0",
+      "sections": ["1", "2"],
+      "hardening": [
+        "Upgrade the FTP server to a patched version.",
+        "Disable FTP in favor of SFTP/FTPS with TLS.",
+        "Disable anonymous login and enforce strong credentials.",
+        "Restrict FTP exposure via firewall."
+      ]
+    },
+    "smtp": {
+      "benchmark": "CIS Mail Server Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade the MTA to a patched version.",
+        "Disable open relay and enforce authentication for submission.",
+        "Enable STARTTLS with a valid certificate.",
+        "Apply rate limits and anti-abuse controls."
+      ]
+    },
+    "http-proxy": {
+      "benchmark": "CIS Web Proxy Benchmark 1.0",
+      "sections": ["1", "2"],
+      "hardening": [
+        "Upgrade the proxy to a patched version.",
+        "Restrict proxy use to authorized clients and deny open forwarding.",
+        "Apply egress allow-lists and URL filtering.",
+        "Enable TLS and audit logging."
+      ]
+    },
+    "ssl": {
+      "benchmark": "CIS TLS Benchmark 1.0",
+      "sections": ["1", "2", "3"],
+      "hardening": [
+        "Upgrade OpenSSL to the latest patched version.",
+        "Disable TLS 1.0/1.1 and weak ciphers; enable TLS 1.2/1.3 only.",
+        "Use approved cipher suites and modern key exchange.",
+        "Configure proper certificate chain and OCSP stapling.",
+        "Disable TLS compression and session tickets where possible."
+      ]
+    },
+    "default": {
+      "benchmark": "CIS Benchmark (relevant product section)",
+      "sections": ["1"],
+      "hardening": [
+        "Apply the latest vendor security patches and upgrades.",
+        "Harden the service configuration per the relevant CIS Benchmark section.",
+        "Restrict network exposure to the minimal set of trusted hosts.",
+        "Enable audit logging and centralized monitoring for the service."
+      ]
+    }
+  },
+  "aliases": {
+    "apache http server": "apache",
+    "apache httpd": "apache",
+    "httpd": "apache",
+    "nginx web server": "nginx",
+    "openssh portable": "openssh",
+    "ssh": "openssh",
+    "redis key-value store": "redis",
+    "postgres": "postgresql",
+    "tomcat": "tomcat",
+    "kubernetes": "docker",
+    "apache tomcat": "tomcat",
+    "nfs": "nfs",
+    "http-proxy": "http-proxy"
+  }
+}

@@ -1,0 +1,58 @@
+---
+# Collecte auth.log + audit noyau (FIM).
+# Supporte deux modes : en ligne (apt) ou HORS-LIGNE via les .deb embarqués
+# dans files/debs/ (cas des machines du réseau sans accès Internet, comme tbini).
+
+- name: Détecter si Internet est joignable
+  shell: 'timeout 5 getent hosts deb.debian.org || exit 1'
+  failed_when: false
+  changed_when: false
+  register: internet
+
+- name: Copier les paquets .deb locaux (chemin absolu)
+  copy:
+    src: "/opt/voc-platform/ansible/files/debs/"
+    dest: /tmp/voc-debs/
+    mode: '0644'
+  when: not (internet.rc == 0)
+
+- name: Installer rsyslog + auditd (hors-ligne)
+  apt:
+    deb: "/tmp/voc-debs/{{ item }}"
+  loop:
+    - libestr0_0.1.11-1_amd64.deb
+    - libfastjson4_1.2304.0-1_amd64.deb
+    - liblognorm5_2.0.6-4_amd64.deb
+    - libauparse0_3.0.9-1_amd64.deb
+    - rsyslog_8.2302.0-1+deb12u1_amd64.deb
+    - auditd_3.0.9-1_amd64.deb
+    - audispd-plugins_3.0.9-1_amd64.deb
+  when: not (internet.rc == 0)
+
+- name: Installer rsyslog + auditd (en ligne)
+  apt:
+    name: [rsyslog, auditd, audispd-plugins]
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  when: internet.rc == 0
+
+- name: Services actifs et persistants
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop: [rsyslog, auditd]
+
+- name: Vérifier /var/log/auth.log
+  stat:
+    path: /var/log/auth.log
+  register: authlog
+
+- debug:
+    msg: >-
+      {{ inventory_hostname }} : mode {{ 'EN-LIGNE' if internet.rc == 0 else 'HORS-LIGNE' }},
+      rsyslog+auditd actifs, auth.log={{ 'présent' if authlog.stat.exists else 'sera créé au premier login' }}.
+
+- name: Activer les règles FIM + pont auditd->syslog
+  include_tasks: fim_rules.yml

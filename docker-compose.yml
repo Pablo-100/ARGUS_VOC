@@ -1,0 +1,849 @@
+# =============================================================================
+# VOC Platform - docker-compose (hardened)
+#
+# Security hardening applied:
+#   - NO default credentials: every secret is required via `:?` (fail-fast).
+#   - Admin/UI ports (Kibana 5601, ES 9200, RabbitMQ 15672, Logstash 5044/9600,
+#     risk-engine 8000, GLPI 8080, MISP 8443) are exposed on all interfaces for
+#     LAN access; they are protected by authentication. Fleet Server (8220)
+#     stays on 0.0.0.0 so external agents can enroll.
+#   - Network isolation: services are split across `frontend`, `backend` and
+#     `data` tiers instead of the default flat bridge.
+#   - SSL verification defaults to `true` for MISP/GLPI API calls.
+#
+# All values come from .env (gitignored). See .env.example for the template.
+# =============================================================================
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: voc-rabbitmq
+    logging: *default-logging
+    mem_limit: 512m
+    ports:
+      - "15672:15672"
+    networks:
+      - backend
+      - data
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?RABBITMQ_USER must be set in .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?RABBITMQ_PASS must be set in .env}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: voc-redis
+    logging: *default-logging
+    mem_limit: 192m
+    networks:
+      - backend
+      - data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
+    # Password is mandatory (fail-fast in compose) - no unauthenticated mode.
+    command: >
+      sh -c "exec redis-server --appendonly yes --requirepass \"$${REDIS_PASSWORD}\""
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        sh -c "redis-cli -a \"$${REDIS_PASSWORD}\" ping"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: voc-elasticsearch
+    logging: *default-logging
+    mem_limit: 2048m
+    networks:
+      - backend
+      - data
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      - bootstrap.memory_lock=true
+      # Small-disk deployments: keep allocating until 95% instead of going
+      # RED at the default 90% high watermark (see docs/PHASE0_AUDIT.md).
+      - cluster.routing.allocation.disk.watermark.low=90%
+      - cluster.routing.allocation.disk.watermark.high=95%
+      - cluster.routing.allocation.disk.watermark.flood_stage=97%
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: voc-logstash
+    logging: *default-logging
+    mem_limit: 512m
+    networks:
+      - backend
+      - data
+    environment:
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
+      - XPACK_MONITORING_ENABLED=false
+      - ES_HOSTS=http://elasticsearch:9200
+      - ES_USER=elastic
+      - ES_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9600/_node/stats | grep -q '\"status\"'"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 60s
+
+  elasticsearch-setup:
+    image: curlimages/curl:latest
+    container_name: voc-elasticsearch-setup
+    logging: *default-logging
+    networks:
+      - data
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - ES_KIBANA_PASSWORD=${ES_KIBANA_PASSWORD:?ES_KIBANA_PASSWORD must be set in .env}
+      # Data retention (days) for pipeline + telemetry indices; 0 disables ILM.
+      - DATA_RETENTION_DAYS=${DATA_RETENTION_DAYS:-14}
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "set -e;
+      for i in $$(seq 1 30); do
+        if curl -s -u elastic:$${ELASTIC_PASSWORD} http://elasticsearch:9200/_cluster/health | grep -q '\"status\"'; then
+          echo 'Elasticsearch is ready. Setting kibana_system password...';
+          curl -s -X POST -u elastic:$${ELASTIC_PASSWORD} http://elasticsearch:9200/_security/user/kibana_system/_password -H 'Content-Type: application/json' -d '{\"password\":\"$${ES_KIBANA_PASSWORD}\"}';
+          echo 'kibana_system password set.';
+          break;
+        fi;
+        echo \"Waiting for Elasticsearch... ($$i/30)\";
+        sleep 5;
+        if [ \"$$i\" = \"30\" ]; then echo 'Elasticsearch did not become ready in time.'; exit 1; fi;
+      done;
+      if [ \"$${DATA_RETENTION_DAYS:-0}\" != \"0\" ]; then
+        echo 'Applying VOC ILM retention policy...';
+        curl -s -X PUT -u elastic:$${ELASTIC_PASSWORD} http://elasticsearch:9200/_ilm/policy/voc-retention -H 'Content-Type: application/json' -d '{\"policy\":{\"phases\":{\"hot\":{\"actions\":{}},\"delete\":{\"min_age\":\"'$${DATA_RETENTION_DAYS}'d\",\"actions\":{\"delete\":{\"delete_searchable_snapshot\":true}}}}}}';
+        for PATTERN in vulnerabilities-* glpi-* attack-graph-* predictions-* prediction-validation-* verification-results-* notification-requests-*; do
+          curl -s -X PUT -u elastic:$${ELASTIC_PASSWORD} \"http://elasticsearch:9200/$${PATTERN}/_settings\" -H 'Content-Type: application/json' -d '{\"index\":{\"lifecycle\":{\"name\":\"voc-retention\",\"rollover_alias\":null}}}';
+        done;
+        echo 'ILM retention applied.';
+      fi;
+      "
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: "no"
+
+  kibana:
+    build: ./kibana
+    image: voc-kibana:8.11.0
+    container_name: voc-kibana
+    logging: *default-logging
+    mem_limit: 2g
+    networks:
+      - frontend
+      - backend
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=voc-kibana
+      - ELASTICSEARCH_PASSWORD=${ES_KIBANA_PASSWORD:?ES_KIBANA_PASSWORD must be set in .env}
+      - SERVER_HOST=${KIBANA_HOST:-0.0.0.0}
+      - SERVER_PORT=${KIBANA_PORT:-5601}
+      - XPACK_SECURITY_ENABLED=true
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY:?XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY must be set in .env}
+      - XPACK_SECURITY_ENCRYPTIONKEY=${XPACK_SECURITY_ENCRYPTIONKEY:?XPACK_SECURITY_ENCRYPTIONKEY must be set in .env}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${XPACK_REPORTING_ENCRYPTIONKEY:?XPACK_REPORTING_ENCRYPTIONKEY must be set in .env}
+      - NODE_OPTIONS=--max-old-space-size=1536
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:5601/api/status | grep -q '\"level\":\"available\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  fleet-server:
+    image: docker.elastic.co/elastic-agent/elastic-agent:8.11.0
+    container_name: voc-fleet-server
+    logging: *default-logging
+    mem_limit: 1g
+    user: root
+    networks:
+      - backend
+    # Intentionally on 0.0.0.0:8220 - external host agents must reach it to enroll.
+    ports:
+      - "8220:8220"
+    environment:
+      - FLEET_SERVER_ENABLE=true
+      - FLEET_SERVER_ELASTICSEARCH_HOST=http://elasticsearch:9200
+      - FLEET_SERVER_SERVICE_TOKEN=${FLEET_SERVER_TOKEN:?FLEET_SERVER_TOKEN must be set in .env}
+      - FLEET_SERVER_POLICY_ID=${FLEET_SERVER_POLICY_ID:-fleet-server-policy}
+      - FLEET_SERVER_HOST=0.0.0.0
+      - FLEET_SERVER_PORT=8220
+      - FLEET_SERVER_CERT=/etc/elastic-agent/certs/fleet-server.crt
+      - FLEET_SERVER_CERT_KEY=/etc/elastic-agent/certs/fleet-server.key
+      - FLEET_URL=https://fleet-server:8220
+      - FLEET_CA=/etc/elastic-agent/certs/fleet-ca.crt
+      - KIBANA_FLEET_HOST=http://kibana:5601
+      - KIBANA_FLEET_USERNAME=elastic
+      - KIBANA_FLEET_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+    volumes:
+      - ./fleet-server/certs:/etc/elastic-agent/certs:ro
+      - fleet_server_state:/usr/share/elastic-agent/state
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fks", "https://localhost:8220/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  risk-engine:
+    build: ./risk-engine
+    container_name: voc-risk-engine
+    logging: *default-logging
+    mem_limit: 256m
+    networks:
+      - backend
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}@redis:6379/0
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - RISK_KEV_BOOST=${RISK_KEV_BOOST:-2.0}
+      - RISK_EPSS_THRESHOLD=${RISK_EPSS_THRESHOLD:-0.5}
+      - RISK_EPSS_BOOST=${RISK_EPSS_BOOST:-1.0}
+      - RISK_ENGINE_API_KEY=${RISK_ENGINE_API_KEY:?RISK_ENGINE_API_KEY must be set in .env}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      elasticsearch-setup:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  elastic-agent:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: voc-elastic-agent
+    logging: *default-logging
+    mem_limit: 256m
+    user: root
+    networks:
+      - backend
+    volumes:
+      - ./scripts/elastic-agent-config.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+      - /etc:/hostfs/etc:ro
+      - /opt/voc-platform/logs:/opt/voc-platform/logs:rw
+      - ./risk-engine/main.log:/opt/voc-platform/risk-engine/main.log:ro
+      - ./workers/tasks.log:/opt/voc-platform/workers/tasks.log:ro
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - ES_KIBANA_PASSWORD=${ES_KIBANA_PASSWORD:?ES_KIBANA_PASSWORD must be set in .env}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "filebeat", "test", "config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  packetbeat:
+    image: docker.elastic.co/beats/packetbeat:8.11.0
+    container_name: voc-packetbeat
+    logging: *default-logging
+    mem_limit: 256m
+    user: root
+    volumes:
+      - ./scripts/packetbeat-config.yml:/usr/share/packetbeat/packetbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /dev:/dev:ro
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - ES_KIBANA_PASSWORD=${ES_KIBANA_PASSWORD:?ES_KIBANA_PASSWORD must be set in .env}
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    network_mode: host
+    pid: host
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "packetbeat", "test", "config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  auditbeat:
+    image: docker.elastic.co/beats/auditbeat:8.11.0
+    container_name: voc-auditbeat
+    logging: *default-logging
+    mem_limit: 256m
+    user: root
+    networks:
+      - backend
+    volumes:
+      - ./scripts/auditbeat-config.yml:/usr/share/auditbeat/auditbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/hostfs/proc:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /etc:/hostfs/etc:ro
+      - /home:/hostfs/home:ro
+      - /root:/hostfs/root:ro
+      - /opt/voc-platform:/hostfs/opt-voc:ro
+      - /var/log:/var/log:ro
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - ES_KIBANA_PASSWORD=${ES_KIBANA_PASSWORD:?ES_KIBANA_PASSWORD must be set in .env}
+    cap_add:
+      - AUDIT_CONTROL
+      - AUDIT_READ
+      - SYS_ADMIN
+    pid: host
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "auditbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:8.11.0
+    container_name: voc-metricbeat
+    logging: *default-logging
+    mem_limit: 256m
+    user: root
+    networks:
+      - backend
+    volumes:
+      - ./scripts/metricbeat-config.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/hostfs/proc:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /etc:/hostfs/etc:ro
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - ES_KIBANA_PASSWORD=${ES_KIBANA_PASSWORD:?ES_KIBANA_PASSWORD must be set in .env}
+      - RABBITMQ_USER=${RABBITMQ_USER:?RABBITMQ_USER must be set in .env}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS must be set in .env}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:?MARIADB_ROOT_PASSWORD must be set in .env}
+    cap_add:
+      - SYS_PTRACE
+      - DAC_READ_SEARCH
+    pid: host
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "metricbeat", "test", "config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  heartbeat:
+    image: docker.elastic.co/beats/heartbeat:8.11.0
+    container_name: voc-heartbeat
+    logging: *default-logging
+    mem_limit: 128m
+    user: root
+    volumes:
+      - ./scripts/heartbeat-config.yml:/usr/share/heartbeat/heartbeat.yml:ro
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - ES_KIBANA_PASSWORD=${ES_KIBANA_PASSWORD:?ES_KIBANA_PASSWORD must be set in .env}
+      - RABBITMQ_USER=${RABBITMQ_USER:?RABBITMQ_USER must be set in .env}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:?RABBITMQ_PASS must be set in .env}
+    network_mode: host
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "heartbeat", "test", "config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  mariadb:
+    image: mariadb:10.6
+    container_name: voc-mariadb
+    logging: *default-logging
+    mem_limit: 384m
+    networks:
+      - backend
+      - data
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?MARIADB_ROOT_PASSWORD must be set in .env}
+      MYSQL_DATABASE: ${MARIADB_DATABASE:-glpi}
+      MYSQL_USER: ${MARIADB_USER:?MARIADB_USER must be set in .env}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD:?MARIADB_PASSWORD must be set in .env}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MARIADB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  glpi:
+    image: diouxx/glpi:latest
+    container_name: voc-glpi
+    logging: *default-logging
+    mem_limit: 256m
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+    environment:
+      GLPI_DB_HOST: mariadb
+      GLPI_DB_NAME: ${MARIADB_DATABASE:-glpi}
+      GLPI_DB_USER: ${MARIADB_USER:?MARIADB_USER must be set in .env}
+      GLPI_DB_PASSWORD: ${MARIADB_PASSWORD:?MARIADB_PASSWORD must be set in .env}
+      GLPI_DB_PORT: 3306
+    volumes:
+      - glpi_config:/var/www/html/glpi/config
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  misp_db:
+    image: mariadb:10.6
+    container_name: voc-misp-db
+    logging: *default-logging
+    mem_limit: 256m
+    networks:
+      - backend
+      - data
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MISP_DB_ROOT_PASSWORD:?MISP_DB_ROOT_PASSWORD must be set in .env}
+      MYSQL_DATABASE: ${MISP_DB_DATABASE:-misp}
+      MYSQL_USER: ${MISP_DB_USER:?MISP_DB_USER must be set in .env}
+      MYSQL_PASSWORD: ${MISP_DB_PASSWORD:?MISP_DB_PASSWORD must be set in .env}
+    volumes:
+      - misp_db_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MISP_DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  misp:
+    image: ghcr.io/misp/misp-docker/misp-core:latest
+    container_name: voc-misp
+    logging: *default-logging
+    mem_limit: 1024m
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8443:443"
+    volumes:
+      - ./scripts/misp-config.php:/var/www/MISP/app/Config/config.php:ro
+    environment:
+      - BASE_URL=${MISP_BASE_URL:-https://192.168.184.135:8443}
+      - ADMIN_EMAIL=${MISP_ADMIN_EMAIL:?MISP_ADMIN_EMAIL must be set in .env}
+      - ADMIN_PASSWORD=${MISP_ADMIN_PASSPHRASE:?MISP_ADMIN_PASSPHRASE must be set in .env}
+      - MYSQL_HOST=misp_db
+      - MYSQL_DATABASE=${MISP_DB_DATABASE:-misp}
+      - MYSQL_USER=${MISP_DB_USER:?MISP_DB_USER must be set in .env}
+      - MYSQL_PASSWORD=${MISP_DB_PASSWORD:?MISP_DB_PASSWORD must be set in .env}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
+    depends_on:
+      misp_db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -skf https://localhost/login >/dev/null || exit 1"]
+      interval: 60s
+      timeout: 15s
+      retries: 5
+      start_period: 180s
+
+  celery-worker:
+    build: ./workers
+    container_name: voc-celery-worker
+    logging: *default-logging
+    mem_limit: 768m
+    # Root is required for nmap -sS/-O raw sockets; drop every other capability.
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    cap_drop:
+      - ALL
+    networks:
+      - backend
+    command: celery -A tasks worker --loglevel=info --concurrency=2 -Q scan,enrich,score,index,ticket
+    environment:
+      - BROKER_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set in .env}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set in .env}@rabbitmq:5672//
+      - RESULT_BACKEND=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}@redis:6379/0
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
+      - MISP_URL=${MISP_URL:?MISP_URL must be set in .env}
+      - MISP_KEY=${MISP_KEY:?MISP_KEY must be set in .env}
+      - MISP_VERIFY_SSL=${MISP_VERIFY_SSL:-true}
+      - MISP_CONCURRENCY=${MISP_CONCURRENCY:-8}
+      - GLPI_URL=${GLPI_URL:?GLPI_URL must be set in .env}
+      - GLPI_APP_TOKEN=${GLPI_APP_TOKEN:?GLPI_APP_TOKEN must be set in .env}
+      - GLPI_USER_TOKEN=${GLPI_USER_TOKEN:?GLPI_USER_TOKEN must be set in .env}
+      - GLPI_VERIFY_SSL=${GLPI_VERIFY_SSL:-true}
+      - RISK_ENGINE_URL=${RISK_ENGINE_URL:-http://risk-engine:8000}
+      - RISK_ENGINE_API_KEY=${RISK_ENGINE_API_KEY:?RISK_ENGINE_API_KEY must be set in .env}
+      - LOGSTASH_URL=${LOGSTASH_URL:-http://logstash:5044}
+      - ES_URL=${ES_URL:-http://elasticsearch:9200}
+      - ES_USER=${ES_USER:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - DISCOVERY_SUBNET=${DISCOVERY_SUBNET:?DISCOVERY_SUBNET must be set in .env}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # --- nmap NSE active vulnerability checks ("super powers", zero infra) ---
+      - NMAP_NSE_VULN_SCAN=${NMAP_NSE_VULN_SCAN:-true}
+      - NMAP_VULN_SCRIPTS=${NMAP_VULN_SCRIPTS:-vuln and not (dos or intrusive)}
+      - NSE_HOST_TIMEOUT=${NSE_HOST_TIMEOUT:-20m}
+      - EPSS_API_URL=${EPSS_API_URL:-https://api.first.org/data/v1/epss}
+      - KEV_CATALOG_URL=${KEV_CATALOG_URL:-https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json}
+      - OSV_API_URL=${OSV_API_URL:-https://api.osv.dev}
+      - EXPLOITDB_CSV_URL=${EXPLOITDB_CSV_URL:-https://gitlab.com/exploit-database/exploitdb/-/raw/main/files_exploits.csv}
+      - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY:-}
+      - EXPLOITDB_REFRESH_HOURS=${EXPLOITDB_REFRESH_HOURS:-24}
+      - TI_CACHE_TTL=${TI_CACHE_TTL:-86400}
+      - NVD_CACHE_TTL=${NVD_CACHE_TTL:-86400}
+      - CHECKLIST_IN_GLPI=${CHECKLIST_IN_GLPI:-true}
+      # --- authenticated scanning (Feature 4) ---
+      - OPENVAS_HOST=${OPENVAS_HOST:-}
+      - OPENVAS_PORT=${OPENVAS_PORT:-9390}
+      - OPENVAS_USER=${OPENVAS_USER:-}
+      - OPENVAS_PASS=${OPENVAS_PASS:-}
+      - OPENVAS_TIMEOUT=${OPENVAS_TIMEOUT:-30}
+      - VERIFICATION_SCANNER=${VERIFICATION_SCANNER:-nmap}
+      # --- notifications (Feature 11) ---
+      - NOTIFICATION_PROVIDERS=${NOTIFICATION_PROVIDERS:-log}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_TO=${SMTP_TO:-}
+      - NOTIFY_CRITICAL_RISK_THRESHOLD=${NOTIFY_CRITICAL_RISK_THRESHOLD:-9.0}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  celery-beat:
+    build: ./workers
+    container_name: voc-celery-beat
+    logging: *default-logging
+    mem_limit: 128m
+    networks:
+      - backend
+    volumes:
+      - beat_schedule_data:/data
+    command: ["/bin/sh", "/app/entrypoint-beat.sh"]
+    environment:
+      - BROKER_URL=amqp://${RABBITMQ_USER:?RABBITMQ_USER must be set in .env}:${RABBITMQ_PASS:?RABBITMQ_PASS must be set in .env}@rabbitmq:5672//
+      - RESULT_BACKEND=redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}@redis:6379/0
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD must be set in .env}
+      - DISCOVERY_SUBNET=${DISCOVERY_SUBNET:?DISCOVERY_SUBNET must be set in .env}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('rabbitmq', 5672), timeout=3); raise SystemExit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  portal:
+    build: ./portal
+    container_name: voc-portal
+    logging: *default-logging
+    mem_limit: 256m
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "4200:4200"
+    environment:
+      - ES_URL=${ES_URL:-http://elasticsearch:9200}
+      - ES_USER=${ES_USER:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD must be set in .env}
+      - PORTAL_SECRET=${PORTAL_SECRET:?PORTAL_SECRET must be set in .env}
+      - PORTAL_ADMIN_USERNAME=${PORTAL_ADMIN_USERNAME:-admin}
+      - PORTAL_ADMIN_PASSWORD=${PORTAL_ADMIN_PASSWORD:?PORTAL_ADMIN_PASSWORD must be set in .env}
+      - PORTAL_DEMO_PASSWORD=${PORTAL_DEMO_PASSWORD:-}
+      - VOC_PUBLIC_HOST=${VOC_PUBLIC_HOST:-localhost}
+      - GLPI_URL=${GLPI_URL:-http://localhost:8080}
+      - GLPI_APP_TOKEN=${GLPI_APP_TOKEN:-}
+      - GLPI_USER_TOKEN=${GLPI_USER_TOKEN:-}
+      - PROVISION_GLPI_URL=http://glpi:80
+      - GLPI_DB_HOST=mariadb
+      - GLPI_DB_USER=${MARIADB_USER:-glpi}
+      - GLPI_DB_PASSWORD=${MARIADB_PASSWORD:?MARIADB_PASSWORD must be set in .env}
+      - GLPI_DB_NAME=${MARIADB_DATABASE:-glpi}
+      - MISP_URL=${MISP_URL:-https://localhost:8443}
+      - MISP_KEY=${MISP_KEY:-}
+      - MISP_VERIFY_SSL=${MISP_VERIFY_SSL:-false}
+      - PROVISION_MISP_URL=https://misp:443
+      - RABBITMQ_USER=${RABBITMQ_USER:-voc}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-}
+      - RABBITMQ_MGMT_URL=http://rabbitmq:15672
+      # --- security (Feature 16) ---
+      # Embedding credentials in SSO links leaks them via browser history;
+      # disabled by default. Set true only for trusted lab demos.
+      - VOC_SSO_EMBED_CREDENTIALS=${VOC_SSO_EMBED_CREDENTIALS:-false}
+      - LOGIN_MAX_ATTEMPTS=${LOGIN_MAX_ATTEMPTS:-5}
+      - LOGIN_LOCKOUT_SECONDS=${LOGIN_LOCKOUT_SECONDS:-900}
+      - FIM_CANARY_DIR=/canary
+      # --- Tools hub ---
+      - KIBANA_EMBED_URL=${KIBANA_EMBED_URL:-}
+      - SHUFFLE_URL=${SHUFFLE_URL:-}
+      - ZABBIX_PUBLIC_URL=${ZABBIX_PUBLIC_URL:-}
+    volumes:
+      - portal_data:/data
+      - ./logs:/canary
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4200/', timeout=3).read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ------------------------------------------------------------------
+  # OPTIONAL: Zabbix monitoring (RAM-heavy -> NOT started by default).
+  #   docker compose --profile zabbix up -d
+  # ------------------------------------------------------------------
+  zabbix-db:
+    image: postgres:16-alpine
+    container_name: voc-zabbix-db
+    profiles: [zabbix]
+    logging: *default-logging
+    mem_limit: 512m
+    networks: [backend]
+    environment:
+      POSTGRES_USER: ${ZABBIX_DB_USER:-zabbix}
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD:-zabbix-set-strong-password-before-enabling}
+      POSTGRES_DB: ${ZABBIX_DB_NAME:-zabbix}
+    volumes:
+      - zabbix_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ZABBIX_DB_USER:-zabbix}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.0-latest
+    container_name: voc-zabbix-server
+    profiles: [zabbix]
+    logging: *default-logging
+    mem_limit: 768m
+    networks: [backend]
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      POSTGRES_USER: ${ZABBIX_DB_USER:-zabbix}
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD:-zabbix-set-strong-password-before-enabling}
+      POSTGRES_DB: ${ZABBIX_DB_NAME:-zabbix}
+      ZBX_STARTPOLLERS: "3"
+      ZBX_STARTTRAPPERS: "2"
+    depends_on:
+      zabbix-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0-latest
+    container_name: voc-zabbix-web
+    profiles: [zabbix]
+    logging: *default-logging
+    mem_limit: 384m
+    networks: [backend, frontend]
+    ports:
+      - "${ZABBIX_WEB_BIND:-0.0.0.0}:8081:8080"
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      POSTGRES_USER: ${ZABBIX_DB_USER:-zabbix}
+      POSTGRES_PASSWORD: ${ZABBIX_DB_PASSWORD:-zabbix-set-strong-password-before-enabling}
+      POSTGRES_DB: ${ZABBIX_DB_NAME:-zabbix}
+      PHP_TZ: ${ZABBIX_TZ:-UTC}
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      zabbix-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # OPTIONAL: Shuffle SOAR (runs on this host thanks to swap; expect
+  # slower workflows under memory pressure).
+  #   docker compose --profile shuffle up -d
+  # ------------------------------------------------------------------
+  shuffle-frontend:
+    image: ghcr.io/shuffle/shuffle-frontend:latest
+    container_name: voc-shuffle-frontend
+    profiles: [shuffle]
+    logging: *default-logging
+    mem_limit: 192m
+    networks: [frontend, backend]
+    ports:
+      - "${SHUFFLE_WEB_BIND:-0.0.0.0}:3001:80"
+    environment:
+      BACKEND_HOSTNAME: shuffle-backend
+    restart: unless-stopped
+
+  shuffle-backend:
+    image: ghcr.io/shuffle/shuffle-backend:latest
+    container_name: voc-shuffle-backend
+    profiles: [shuffle]
+    logging: *default-logging
+    mem_limit: 896m
+    networks: [backend]
+    environment:
+      DATA_DIR: /shuffle-db-volume
+      # reuse the VOC Elasticsearch cluster as persistence backend
+      SHUFFLE_ELASTIC: "true"
+      SHUFFLE_OPENSEARCH_URL: http://elasticsearch:9200
+      SHUFFLE_OPENSEARCH_USERNAME: ${ES_USER:-elastic}
+      SHUFFLE_OPENSEARCH_PASSWORD: ${ELASTIC_PASSWORD}
+      SHUFFLE_ELASTIC_USERNAME: ${ES_USER:-elastic}
+      SHUFFLE_ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+    volumes:
+      - shuffle_db:/shuffle-db-volume
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  shuffle-orborus:
+    image: ghcr.io/shuffle/shuffle-orborus:latest
+    container_name: voc-shuffle-orborus
+    profiles: [shuffle]
+    logging: *default-logging
+    mem_limit: 256m
+    networks: [backend]
+    environment:
+      BACKEND_HOSTNAME: shuffle-backend
+      DOCKER_API_VERSION: "1.40"
+      ORG_ID: ${SHUFFLE_ORG_ID:-Shuffle}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  es_data:
+  redis_data:
+  mariadb_data:
+  misp_db_data:
+  glpi_config:
+  fleet_server_state:
+  portal_data:
+  beat_schedule_data:
+  zabbix_db_data:
+  shuffle_db:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  data:
+    driver: bridge

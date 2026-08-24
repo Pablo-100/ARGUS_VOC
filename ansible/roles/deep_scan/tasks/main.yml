@@ -1,0 +1,74 @@
+---
+# DEEP SCAN authentifié — le "super-pouvoir" complémentaire de Nmap :
+# on entre sur la machine avec SSH et on collecte ce qu'un scan externe
+# ne peut JAMAIS voir (paquets exacts, comptes, ports, services).
+# Niveau d'intensité: SCAN_PROFILE=fast|deep|max (group_vars/all.yml)
+
+- name: Profondeur de collecte
+  set_fact:
+    deep: "{{ scan_profile|default('deep') in ('deep','max') }}"
+    maxed: "{{ scan_profile|default('deep') == 'max' }}"
+
+- name: Paquets installés (nom + version)
+  shell: "dpkg-query -W -f='${Package}|${Version}\\n' 2>/dev/null | head -{{ 800 if maxed else 400 }}"
+  args: {executable: /bin/bash}
+  register: pkgs
+  changed_when: false
+
+- name: Ports en écoute
+  command: ss -tulpn
+  register: ss_out
+  changed_when: false
+
+- name: Comptes utilisateurs humains (uid>=1000)
+  shell: "getent passwd | awk -F: '$3>=1000 && $1!=\"nobody\"{print $1\":\"$6}'"
+  register: users
+  changed_when: false
+
+- name: Services activés
+  shell: "systemctl list-unit-files --state=enabled --no-legend | awk '{print $1}' | head -60"
+  register: svcs
+  changed_when: false
+
+- name: Dernières connexions
+  shell: "last -n {{ 25 if deep else 10 }} -w | head -30"
+  register: lastlogins
+  changed_when: false
+  failed_when: false
+
+- name: Processus top mémoire
+  shell: "ps aux --sort=-%mem | head -12"
+  register: procs
+  changed_when: false
+
+- name: Assembler le document d'intelligence (template JSON natif)
+  set_fact:
+    intel_json: "{{ lookup('template', 'intel.json.j2') }}"
+  changed_when: false
+
+- name: Déposer le document sur l'hôte
+  copy:
+    content: "{{ intel_json }}"
+    dest: /tmp/voc-intel.json
+    mode: '0600'
+
+- name: Envoyer vers Elasticsearch via curl
+  vars:
+    es_url: "http://{{ voc_server }}:9200"
+  shell: >
+    curl -s -u '{{ es_user }}:{{ es_password }}'
+    -X POST '{{ es_url }}/agent-intel-host/_doc'
+    -H 'Content-Type: application/json'
+    --data-binary @/tmp/voc-intel.json
+  register: push
+  changed_when: false
+  failed_when: "'error' in push.stdout"
+
+- name: Nettoyer le fichier local
+  file:
+    path: /tmp/voc-intel.json
+    state: absent
+
+- name: Résultat du push
+  debug:
+    msg: "{{ (push.stdout | from_json).get('result', push.stdout[:100]) }}"

@@ -1,0 +1,203 @@
+
+% ===========================================================================
+% 4. OUTILS ET TECHNOLOGIES
+% ===========================================================================
+\section{Outils et technologies}
+
+Cette section d\'ecrit les outils et technologies utilis\'es dans le projet,
+ainsi que les raisons de leur choix. Les logos illustrent les technologies
+officielles employ\'ees.
+
+\subsection{Conteneurisation et d\'eploiement}
+
+\techblock{docker}{Docker}{Docker est une plateforme de conteneurisation qui
+permet d'embarquer une application et ses d\'ependances dans des conteneurs
+isol\'es et reproductibles. Chaque conteneur dispose de son propre espace
+processus, r\'eseau et syst\`eme de fichiers.}{La plateforme est compos\'ee de
+plus de dix-huit services interd\'ependants (bases de donn\'ees, courtiers,
+applications, agents de collecte). Docker garantit un d\'eploiement identique
+sur toute machine, simplifie la gestion des versions et acc\'el\`ere les
+red\'eploiements.}
+
+\techblock{docker}{Docker Compose}{Docker Compose permet de d\'efinir et
+d'orchestrer un ensemble de conteneurs multi-services \`a partir d'un unique
+fichier YAML (r\'eseaux, volumes, limites m\'emoire, variables
+d'environnement, ordre de d\'emarrage).}{Le fichier
+\texttt{docker-compose.yml} centralise la d\'efinition des 18 services
+applicatifs plus le serveur Fleet. C'est le point d'entr\'ee unique pour
+d\'eployer et administrer l'ensemble de la plateforme.}
+
+\subsection{D\'eveloppement}
+
+\techblock{python}{Python 3.11}{Python est un langage de programmation
+g\'en\'eraliste, interpr\'et\'e et riche d'un vaste \'ecosyst\`eme de
+biblioth\`eques (parsing, HTTP, tests, calcul).}{Les modules du pipeline
+(scan, enrichissement, score, indexation, tickets) sont \'ecrits en Python :
+il offre une syntaxe lisible, une int\'egration native avec
+\texttt{python-nmap}, \texttt{requests} et \texttt{pytest}, et acc\'el\`ere
+fortement le d\'eveloppement des clients d'API (MISP, GLPI, NVD, etc.).}
+
+\techblock{fastapi}{FastAPI}{FastAPI est un framework Python moderne et
+performant pour la construction d'API REST, bas\'e sur Pydantic pour la
+validation des donn\'ees et g\'en\'erant automatiquement une documentation
+OpenAPI.}{Le moteur de risque expose une API \texttt{POST /score} ainsi
+qu'une sonde de sant\'e \texttt{GET /health}. FastAPI a \'et\'e choisi pour sa
+vitesse d'ex\'ecution, la validation automatique des entr\'ees, la
+documentation interactive et sa faible latence.}
+
+\subsection{Ordonnancement et files de t\^aches}
+
+\techblock{celery}{Celery et Celery Beat}{Celery est un syst\`eme
+d'ex\'ecution de t\^aches asynchrones distribu\'ees ; Celery Beat est son
+planificateur p\'eriodique (crontab).}{Le pipeline est organis\'e en
+t\^aches asynchrones (\texttt{scan}, \texttt{enrich}, \texttt{enhance},
+\texttt{score}, \texttt{index\_to\_elk}, \texttt{create\_ticket})
+ex\'ecut\'ees par des workers parall\`eles. Celery g\`ere la r\'epartition,
+les nouvelles tentatives et le suivi des r\'esultats, tandis que Beat
+d\'eclenche le scan au d\'emarrage et toutes les 6 heures, ainsi que la
+synchronisation GLPI chaque heure.}
+
+\techblock{rabbitmq}{RabbitMQ}{RabbitMQ est un courtier de messages
+impl\'ementant le protocole AMQP (Advanced Message Queuing Protocol).}{Il sert
+de brique centralisatrice du pipeline : chaque famille de t\^aches poss\`ede
+sa file d\'ediqu\'ee (\texttt{scan}, \texttt{enrich}, \texttt{score},
+\texttt{index}, \texttt{ticket}), ce qui permet de parall\'eliser le
+traitement et d'absorber les pics de charge g\'en\'er\'es par les scans.}
+
+\techblock{redis}{Redis}{Redis est une base de donn\'ees cl\'e-valeur en
+m\'emoire, tr\`es rapide et compatible avec la plupart des langages.}{Redis
+joue deux r\^oles : conserver l'\'etat diff\'erentiel des scans
+(\texttt{voc:scan:state}) et servir de backend de r\'esultats Celery. Sa
+rapidit\'e est essentielle pour comparer \`a chaque cycle des milliers de
+vuln\'erabilit\'es sans p\'enaliser le pipeline.}
+
+\subsection{Analyse de vuln\'erabilit\'es}
+
+\techblock{nmap}{nmap}{nmap est l'outil de r\'ef\'erence pour la d\'ecouverte
+de r\'eseau, l'audit de ports et la reconnaissance de services et de
+syst\`emes d'exploitation.}{Il est utilis\'e avec les options
+\texttt{-sS -sV -O -p- -T4} pour scanner l'int\'egralit\'e des 65535 ports
+TCP, identifier les versions des services et reconna\^itre le syst\`eme
+d'exploitation des h\^otes. L'acc\`es aux biblioth\`eques Python
+(\texttt{python-nmap}) permet de l'int\'egrer nativement dans les t\^aches
+Celery.}
+
+\subsection{Intelligence sur les menaces}
+
+\techblock{misp}{MISP}{MISP (\emph{Malware Information Sharing Platform}) est
+une plateforme de partage d'intelligence sur les menaces : \'ev\'enements,
+attributs (IOC), taxonomies et corr\'elations.}{La plateforme y recherche des
+indicateurs de compromission li\'es \`a chaque CVE et y publie, \`a
+l'inverse, les nouvelles vuln\'erabilit\'es sous forme d'\'ev\'enements. C'est
+le pivot du volet \emph{renseignement} du pipeline.}
+
+\techblock{nvd}{NVD}{La \emph{National Vulnerability Database} est la base de
+r\'ef\'erence des CVE, g\'er\'ee par le NIST.}{L'API NVD fournit les
+m\'eta-donn\'ees de chaque CVE (score CVSS, CWE, r\'ef\'erences, versions
+impact\'ees) qui servent de socle \`a la corr\'elation produit/version
+$\rightarrow$ CVE.}
+
+\techblock{epss}{EPSS}{L'\emph{Exploit Prediction Scoring System} (FIRST)
+estime, avec un score entre 0 et 1, la probabilit\'e qu'une vuln\'erabilit\'e
+soit exploit\'ee dans les 30 jours.}{Le score EPSS est une entr\'ee du moteur
+de risque : il permet de prioriser les failles r\'eellement exploitables
+plut\^ot que de traiter uniquement par note CVSS.}
+
+\techblock{kev}{CISA KEV}{Le catalogue KEV (\emph{Known Exploited
+Vulnerabilities}) de la CISA recense les vuln\'erabilit\'es activement
+exploit\'ees par des acteurs malveillants.}{Toute CVE pr\'esente dans ce
+catalogue re\c coit un bonus de risque (2.0 par d\'efaut), car une
+exploitation en cours repr\'esente une menace imm\'ediate pour le r\'eseau.}
+
+\techblock{terminal}{OSV.dev \& Exploit-DB}{OSV.dev agr\`ege des
+vuln\'erabilit\'es open-source ; Exploit-DB indexe les exploits publics
+disponibles.}{Ces deux sources compl\`etent l'enrichissement : confirmation de
+l'existence d'un exploit public (\texttt{exploit\_available}) et donn\'ees
+suppl\'ementaires pour les composants open-source.}
+
+\subsection{Stockage et visualisation}
+
+\techblock{elasticsearch}{Elasticsearch}{Elasticsearch est un moteur de
+recherche et d'analyse distribu\'e bas\'e sur Lucene, avec indexation
+journali\`ere et agr\'egations en temps r\'eel.}{Il stocke tous les documents
+de vuln\'erabilit\'es (indices \texttt{vulnerabilities-*}), les donn\'ees
+d'observabilit\'e des Beats et l'\'etat des tickets (\texttt{glpi-*}). Sa
+rapidit\'e et ses agr\'egations permettent des tableaux de bord
+synth\'etiques.}
+
+\techblock{logstash}{Logstash}{Logstash est un pipeline de traitement de
+donn\'ees qui collecte, transforme et achemine les \'ev\'enements vers
+Elasticsearch.}{Il re\c coit les documents en HTTP (\texttt{:5044}) et les
+achemine vers les indices journaliers. Il centralise ainsi l'ingestion et
+facilite les transformations futures sans modifier les workers.}
+
+\techblock{kibana}{Kibana}{Kibana est l'interface de visualisation de la
+stack Elastic : tableaux de bord, vues de donn\'ees, d\'ecouvertes et
+administration de Fleet.}{Il fournit les tableaux de bord de
+vuln\'erabilit\'es, les vues de donn\'ees (Filebeat, Packetbeat, Metricbeat,
+Heartbeat, GLPI) et l'administration de Fleet. L'image a \'et\'e
+personnalis\'ee pour injecter les cl\'es de chiffrement \`a
+l'initialisation.}
+
+\subsection{Gestion des agents}
+
+\techblock{fleet}{Fleet Server et Elastic Agent}{Fleet Server est le point
+d'enr\^olement central des Elastic Agents ; il distribue les politiques et
+les int\'egrations de collecte.}{Fleet permet d'enr\^oler des agents sur des
+h\^otes externes (Linux/Windows) via une politique par type d'h\^ote et de
+superviser leur \'etat (\texttt{online}/\texttt{degraded}). C'est la brique
+de \emph{gouvernance des agents}.}
+
+\techblock{beats}{Les Beats (Filebeat, Metricbeat, Packetbeat, Auditbeat,
+Heartbeat)}{Les Beats sont des agents l\'egers de collecte de donn\'ees pour
+la stack Elastic.}{Chaque Beat couvre un besoin d'observabilit\'e : journaux
+(Filebeat), m\'etriques syst\`eme et Docker (Metricbeat), flux r\'eseau
+(Packetbeat), traces d'audit (Auditbeat) et disponibilit\'e des services
+(Heartbeat). Ils alimentent les tableaux de bord de supervision.}
+
+\subsection{Gestion des services informatiques}
+
+\techblock{glpi}{GLPI}{GLPI est une solution ITSM open-source de gestion des
+parcs informatiques, des incidents et des demandes, dot\'ee d'une API REST.}
+{C'est le circuit de rem\'ediation : le pipeline y cr\'ee automatiquement un
+ticket pour chaque vuln\'erabilit\'e dont le score de risque est $\geq 7$,
+avec une priorit\'e et une liste de v\'erifications (\emph{checklist})
+adapt\'ees \`a la s\'ev\'erit\'e.}
+
+\subsection{Infrastructure et versionnement}
+
+\techblock{ubuntu}{Ubuntu Server (VMware)}{Ubuntu Server est le syst\`eme
+d'exploitation h\^ote de la plateforme, h\'eberg\'e sur une machine virtuelle
+VMware (\texttt{192.168.184.135}).}{Il offre un \'ecosyst\`eme stable, des
+paquets r\'ecents pour Docker et les outils r\'eseau (dont nmap), ainsi
+qu'une documentation abondante.}
+
+\techblock{git}{Git}{Git est un syst\`eme de contr\^ole de version
+distribu\'e.}{L'ensemble du code (docker-compose, workers, configuration des
+agents, rapport) est versionn\'e dans un d\'ep\^ot Git local, ce qui garantit
+la tra\c cabilit\'e des modifications et la reproductibilit\'e du
+d\'eploiement.}
+
+\subsection{Tableau r\'ecapitulatif}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}l l X@{}}
+\toprule
+\textbf{Couche} & \textbf{Technologie} & \textbf{R\^ole} \\
+\midrule
+Orchestration & Celery + Celery Beat & Pipeline de t\^aches asynchrones et ordonnancement \\
+Courtier & RabbitMQ 3.12 & Files de messages distribu\'ees \\
+\'Etat/cache & Redis 7 & \'Etat de scan, backend de r\'esultats, cache \\
+Scanner & nmap (python-nmap) & D\'ecouverte + scan complet + OS \\
+Intel menaces & MISP & Partage et enrichissement d'\'ev\'enements \\
+Flux CVE & NVD API & Corr\'elation produit $\rightarrow$ CVE \\
+Contexte exploit & EPSS, CISA KEV, OSV, Exploit-DB & Probabilit\'e d'exploitation et exploits \\
+Moteur de risque & FastAPI & Calcul du score de risque \\
+ITSM & GLPI & Tickets de rem\'ediation et gestion de parc \\
+Recherche/viz & Elasticsearch + Kibana 8.11 & Indexation, tableaux de bord, alertes \\
+Ingestion & Logstash 8.11 & Pipeline HTTP $\rightarrow$ Elasticsearch \\
+Agents & Fleet Server / Elastic Agent / Beats & Collecte et gestion des agents \\
+\bottomrule
+\end{tabularx}
+\end{center}

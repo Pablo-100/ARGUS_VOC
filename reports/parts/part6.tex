@@ -1,0 +1,241 @@
+
+% ===========================================================================
+% 9. MODELE DE DONNEES
+% ===========================================================================
+\section{Mod\`ele de donn\'ees et stockage}
+
+\subsection{Indices Elasticsearch}
+
+\begin{center}
+\small
+\begin{longtable}{@{}p{0.34\linewidth} p{0.18\linewidth} p{0.42\linewidth}@{}}
+\toprule
+\textbf{Mod\`ele d'indice} & \textbf{Source} & \textbf{Contenu} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{vulnerabilities-AAAA.MM.JJ} & Logstash & R\'esultats de scan avec scores de risque \\
+\texttt{filebeat-8.11.0-AAAA.MM.JJ} & Filebeat & Journaux Docker, syst\`eme, ICMP \\
+\texttt{packetbeat-8.11.0-AAAA.MM.JJ} & Packetbeat & M\'etadonn\'ees de trafic r\'eseau \\
+\texttt{auditbeat-8.11.0-AAAA.MM.JJ} & Auditbeat & \'Ev\'enements processus/fichiers/utilisateurs \\
+\texttt{metricbeat-8.11.0-AAAA.MM.JJ} & Metricbeat & M\'etriques syst\`eme, Docker, services \\
+\texttt{heartbeat-8.11.0-AAAA.MM.JJ} & Heartbeat & V\'erifications de disponibilit\'e \\
+\texttt{glpi-AAAA.MM.JJ} & Logstash & \'Etat des tickets GLPI synchronis\'e \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\subsection{Vues de donn\'ees Kibana}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X l@{}}
+\toprule
+\textbf{ID} & \textbf{Mod\`ele} & \textbf{Nom} \\
+\midrule
+\texttt{5ec5e7c3-...} & \texttt{filebeat-*} & VOC Filebeat Logs \\
+\texttt{8cd32128-...} & \texttt{packetbeat-*} & VOC Network Traffic \\
+\texttt{943fb14e-...} & \texttt{auditbeat-*} & VOC Audit Trail \\
+\texttt{metricbeat-voc} & \texttt{metricbeat-*} & VOC Metrics \\
+\texttt{heartbeat-voc} & \texttt{heartbeat-*} & VOC Uptime \\
+\texttt{997fc760-...} & \texttt{vulnerabilities-*} & VOC Vulnerabilities \\
+-- & \texttt{glpi-*} & GLPI Tickets \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Exemple de document de vuln\'erabilit\'e}
+
+Un document index\'e via Logstash contient les champs suivants :
+
+\begin{lstlisting}[language=,caption={Document de vuln\'erabilit\'e index\'e (abr\'eg\'e)}]
+{
+  "@timestamp": "2026-08-15T04:57:00Z",
+  "host_ip": "192.168.1.1",
+  "os": "Netgear WGR614v7",
+  "cve": "CVE-2017-9765",
+  "cvss": 9.0,
+  "risk_score": 10.0,
+  "severity": "Critical",
+  "port": "7547/tcp",
+  "source": "voc-nmap",
+  "status": "active",
+  "epss_score": 0.80,
+  "in_kev": true,
+  "exploit_available": true,
+  "vulnerability_type": "Security Vulnerability",
+  "cwe_ids": ["CWE-78"],
+  "attack_tactics": ["Initial Access"],
+  "attack_techniques": ["T1190"],
+  "checklist": [ { "id": "VAL-01", "category": "Validation", "done": false } ],
+  "technical_description": "## Vulnerability Overview ..."
+}
+\end{lstlisting}
+
+Le champ \texttt{os} est d\'esormais pr\'esent gr\^ace \`a la d\'etection du
+syst\`eme d'exploitation, et le champ \texttt{risk\_score} alimente les
+tableaux de bord et les r\`egles de tickets.
+
+\clearpage
+
+% ===========================================================================
+% 10. SECURITE
+% ===========================================================================
+\section{S\'ecurit\'e de la plateforme}
+
+\subsection{Chiffrement de Kibana}
+
+Kibana n\'ecessite des cl\'es de chiffrement pour prot\'eger les objets
+sauv\'egard\'es, les sessions et les rapports. Trois cl\'es ont \'et\'e
+inject\'ees via les variables d'environnement suivantes :
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Variable} & \textbf{R\^ole} \\
+\midrule
+\texttt{XPACK\_SECURITY\_ENCRYPTIONKEY} & Chiffrement des sessions et donn\'ees s\'ecuris\'ees \\
+\texttt{XPACK\_ENCRYPTEDSAVEDOBJECTS\_ENCRYPTIONKEY} & Chiffrement des objets sauv\'egard\'es \\
+\texttt{XPACK\_REPORTING\_ENCRYPTIONKEY} & Chiffrement des rapports \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Authentification}
+
+Chaque service dispose de m\'ecanismes d'authentification : utilisateur
+\texttt{elastic} pour Elasticsearch/Kibana, jetons d'application et
+d'utilisateur pour l'API GLPI, et cl\'e API pour MISP. Les secrets sont
+stock\'es dans le fichier \texttt{.env} et inject\'es dans les conteneurs.
+
+\subsection{Isolation des conteneurs}
+
+La plateforme utilise des r\'eseaux et volumes Docker d\'edi\'es. Le worker
+de scan ex\'ecute nmap en tant que \texttt{root} avec la capacit\'e
+\texttt{NET\_RAW} pour permettre le scan SYN (\texttt{-sS}) et la d\'etection
+OS (\texttt{-O}) ; cette ex\'ecution privil\'egi\'ee est limit\'ee au seul
+conteneur de scan. Les limites m\'emoire sont d\'efinies par service afin
+d'\'eviter qu'un conteneur n'\'epuise les ressources de l'h\^ote.
+
+\subsection{Supervision des agents}
+
+Fleet centralise l'enr\^olement des agents et la distribution des politiques.
+L'\'etat de chaque agent (\texttt{online}, \texttt{offline}, \texttt{degraded})
+est visible depuis Kibana, ce qui permet de d\'etecter rapidement les agents
+qui ne transmettent plus de donn\'ees.
+
+\subsection{Transport des donn\'ees}
+
+En environnement de laboratoire, les certificats autog\'en\'er\'es sont
+utilis\'es. Les clients (MISP, GLPI, Elasticsearch) acceptent une
+v\'erification SSL d\'esactivable via des variables d'environnement
+(\texttt{MISP\_VERIFY\_SSL}, \texttt{GLPI\_VERIFY\_SSL}) afin de permettre un
+durcissement lors d'un passage en production.
+
+\clearpage
+
+% ===========================================================================
+% 11. ETAT OPERATIONNEL
+% ===========================================================================
+\section{\'Etat op\'erationnel du d\'eploiement}
+
+\subsection{Sant\'e de la plateforme}
+
+La plateforme est enti\`erement fonctionnelle : les 20 services Docker
+(18 applicatifs + serveur Fleet + t\^ache d'initialisation ponctuelle) sont
+d\'eploy\'es et, pour la quasi-totalit\'e, \emph{healthy}.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Indicateur} & \textbf{Valeur} \\
+\midrule
+Conteneurs Docker & 20 d\'eploy\'es (18 + Fleet Server + initialisation) \\
+Cluster Elasticsearch & 1 n\oe ud, statut \textcolor{vocgreen}{\textbf{green}} \\
+Shards & 129 primaires actifs, 0 non-assign\'es \\
+Documents de vuln\'erabilit\'es (total) & 5{,}041 \\
+Documents vuln\'erabilit\'es du jour (08.15) & 2{,}992 \\
+H\^otes analys\'es & 4 (dont routeur \texttt{192.168.1.1}) \\
+H\^otes actifs d\'ecouverts (LAN) & 8 (routeurs, WAP, postes, serveurs) \\
+Tickets GLPI & 419 (statut = nouveau, avec checklists) \\
+\'Ev\'enements MISP & 1{,}300+ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Preuves de l'extension du scan}
+
+Le passage au scan complet a \'et\'e v\'erifi\'e en production :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item le scan d\'emarre \textbf{au d\'emarrage du conteneur} puis toutes
+        les 6\,h (ex\'ecution v\'erifi\'ee) ;
+  \item \textbf{d\'etection du syst\`eme d'exploitation} op\'erationnelle :
+        ex.\ \texttt{Linux 5.0 - 5.14} pour \texttt{192.168.1.18}, et lors de
+        la d\'ecouverte : routeur Netgear WGR614, point d'acc\`es TP-LINK
+        TD-W8963N, poste Windows 11 et smartphones Android ;
+  \item le port \texttt{7547/tcp} (TR-069, hors de l'ancienne liste de 41
+        ports) a \'et\'e d\'ecouvert, preuve que l'\textbf{int\'egralit\'e des
+        ports} est maintenant scann\'ee ; il a d\'eclench\'e les tickets GLPI
+        \texttt{\#418} et \texttt{\#419} (critiques, h\^ote
+        \texttt{192.168.1.1}) ;
+  \item l'analyse diff\'erentielle du dernier cycle : \textbf{2 nouvelles} /
+        307 toujours pr\'esentes / 0 r\'esolue ;
+  \item deux vuln\'erabilit\'es \`a risque 10.0 ont \'et\'e index\'ees et un
+        \'ev\'enement MISP a \'et\'e cr\'e\'e ;
+  \item le champ \texttt{os} est bien pr\'esent dans les documents
+        Elasticsearch.
+\end{itemize}
+
+\subsection{R\'epartition des donn\'ees (indice du 08.15)}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l r X@{}}
+\toprule
+\textbf{H\^ote} & \textbf{Documents} & \textbf{Observations} \\
+\midrule
+\texttt{192.168.1.18} & 1{,}778 & serveur LAN (port 3306/MySQL majoritaire) \\
+\texttt{192.168.184.135} & 1{,}119 & h\^ote plateforme (OpenSSH, services Docker) \\
+\texttt{192.168.184.136} & 93 & second h\^ote du r\'eseau SPA \\
+\texttt{192.168.1.1} & 2 & routeur d\'ecouvert via le scan complet \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Ports les plus fr\'equents}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l r X@{}}
+\toprule
+\textbf{Port} & \textbf{Documents} & \textbf{Observation} \\
+\midrule
+\texttt{3306/tcp} & 2{,}400 & MySQL/MariaDB (h\^ote \texttt{.18}) \\
+\texttt{22/tcp} & 323 & SSH (serveurs) \\
+\texttt{8080/tcp} & 252 & HTTP alternatif \\
+\texttt{9200/tcp} & 15 & Elasticsearch expos\'e \\
+\texttt{7547/tcp} & 2 & TR-069 (routeur) -- nouvellement d\'ecouvert \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Agents Fleet}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l l l X@{}}
+\toprule
+\textbf{Agent} & \textbf{H\^ote} & \textbf{Politique} & \textbf{\'Etat} \\
+\midrule
+\texttt{2fbcef12-...} & \texttt{voc-fleet-server} & fleet-server-policy-fresh-001 & \textcolor{vocgreen}{online} \\
+\texttt{607d470b-...} & conteneur \'elastique & linux\_hosts & \textcolor{vocgreen}{online} \\
+\texttt{f7f2c317-...} & \texttt{tbini} (VM \texttt{192.168.184.138}) & linux\_hosts & \textcolor{vocorange}{degraded} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\clearpage

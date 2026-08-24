@@ -1,0 +1,49 @@
+graph TD
+    ROOT["/opt/voc-platform"]
+    COMPOSE["docker-compose.yml<br/>18 services + fleet-server"]
+    ENV[".env — secrets & configuration"]
+    README["README.md + PROJECT_REFERENCE.md"]
+    LOGSTASH["logstash/pipeline/voc.conf"]
+    RISK["risk-engine/main.py<br/>FastAPI moteur de risque"]
+    SCRIPTS["scripts/ — configs des Beats,<br/>icmp-monitor.sh, init-es-users.sh,<br/>install-windows-agent.ps1"]
+    WORKERS["workers/ — application Celery"]
+    TESTS["workers/tests/"]
+    KB["workers/knowledge/"]
+    W_TASKS["tasks.py — tâches Celery"]
+    W_ENTRY["entrypoint-beat.sh<br/>scan au démarrage"]
+    W_DOCKER["Dockerfile<br/>USER root (scan -O)"]
+    W_GLPI["glpi_client.py"]
+    W_MISP["misp_client.py"]
+    W_NVD["nvd_client.py"]
+    W_LS["logstash_client.py"]
+    W_TE["ticket_enrichment.py"]
+    W_TI["threat_intel.py"]
+    W_GLPIS["glpi_sync.py"]
+    W_BACK["backfill_enrich.py"]
+    KIBANA["kibana/kibana.yml + Dockerfile<br/>clés de chiffrement"]
+    FLEETDIR["fleet-server/"]
+    REPORTS["reports/ — rapport + diagrams"]
+
+    ROOT --> COMPOSE
+    ROOT --> ENV
+    ROOT --> README
+    ROOT --> LOGSTASH
+    ROOT --> RISK
+    ROOT --> SCRIPTS
+    ROOT --> KIBANA
+    ROOT --> FLEETDIR
+    ROOT --> REPORTS
+    ROOT --> WORKERS
+    WORKERS --> W_TASKS
+    WORKERS --> W_ENTRY
+    WORKERS --> W_DOCKER
+    WORKERS --> W_GLPI
+    WORKERS --> W_MISP
+    WORKERS --> W_NVD
+    WORKERS --> W_LS
+    WORKERS --> W_TE
+    WORKERS --> W_TI
+    WORKERS --> W_GLPIS
+    WORKERS --> W_BACK
+    WORKERS --> TESTS
+    WORKERS --> KB

@@ -1,0 +1,99 @@
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+metricbeat.modules:
+
+- module: system
+  metricsets:
+    - cpu
+    - load
+    - memory
+    - network
+    - process
+    - process_summary
+    - diskio
+    - filesystem
+    - fsstat
+  period: 30s
+  processes: ['.*']
+  process.include_top_n:
+    by_cpu: 10
+    by_memory: 10
+
+- module: docker
+  metricsets:
+    - container
+    - cpu
+    - diskio
+    - healthcheck
+    - info
+    - memory
+    - network
+  hosts: ["unix:///var/run/docker.sock"]
+  period: 30s
+
+- module: rabbitmq
+  metricsets:
+    - node
+    - queue
+  period: 30s
+  hosts: ["rabbitmq:15672"]
+  username: ${RABBITMQ_USER}
+  password: ${RABBITMQ_PASS}
+
+- module: redis
+  metricsets:
+    - info
+    - keyspace
+  period: 30s
+  hosts: ["redis:6379"]
+  password: ${REDIS_PASSWORD}
+
+- module: mysql
+  metricsets:
+    - status
+  period: 30s
+  hosts: ["tcp(mariadb:3306)/"]
+  username: root
+  password: ${MARIADB_ROOT_PASSWORD}
+
+- module: elasticsearch
+  metricsets:
+    - node
+    - node_stats
+  period: 30s
+  hosts: ["http://elasticsearch:9200"]
+  username: elastic
+  password: ${ELASTIC_PASSWORD}
+
+metricbeat.processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_host_metadata:
+      when.contains:
+        host.name: "voc"
+  - add_cloud_metadata: ~
+  - add_fields:
+      target: ''
+      fields:
+        log_type: metrics
+        platform: voc
+        environment: production
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  index: "metricbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+setup.ilm.enabled: false
+setup.template.name: "metricbeat"
+setup.template.pattern: "metricbeat-*"
+setup.template.settings.index.number_of_shards: 1
+setup.template.settings.index.number_of_replicas: 0
+
+logging.level: info
+logging.to_stderr: true
+logging.metrics.enabled: true
+logging.metrics.period: 30s

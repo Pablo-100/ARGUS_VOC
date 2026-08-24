@@ -1,0 +1,78 @@
+packetbeat.interfaces.type: pcap
+packetbeat.interfaces.device: any
+
+packetbeat.protocols:
+
+- type: dns
+  ports: [53]
+  include_authorities: true
+  include_additionals: true
+  query_types:
+    - A
+    - AAAA
+    - CNAME
+    - MX
+    - NS
+    - PTR
+    - SOA
+    - SRV
+    - TXT
+
+- type: http
+  ports: [80, 8080, 5601, 9200, 5000, 8000, 3000]
+  send_headers: true
+  send_all_header: true
+  decode_body: false
+  include_cookies: true
+
+- type: tls
+  ports: [443, 8443]
+
+- type: amqp
+  ports: [5672]
+  send_headers: true
+
+- type: redis
+  ports: [6379]
+
+- type: mysql
+  ports: [3306]
+
+- type: icmp
+  enabled: true
+
+packetbeat.flows:
+  enabled: true
+  timeout: 30s
+  period: 10s
+
+packetbeat.processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_host_metadata:
+      when.contains:
+        host.name: "voc"
+  - add_cloud_metadata: ~
+  - add_fields:
+      target: ''
+      fields:
+        log_type: network
+        platform: voc
+        environment: production
+
+output.elasticsearch:
+  hosts: ["http://localhost:9200"]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  index: "packetbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+setup.ilm.enabled: false
+setup.template.name: "packetbeat"
+setup.template.pattern: "packetbeat-*"
+setup.template.settings.index.number_of_shards: 1
+setup.template.settings.index.number_of_replicas: 0
+
+logging.level: info
+logging.to_stderr: true
+logging.metrics.enabled: true
+logging.metrics.period: 30s

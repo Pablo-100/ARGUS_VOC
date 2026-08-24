@@ -1,0 +1,145 @@
+{
+  "types": {
+    "RCE": {
+      "label": "Remote Code Execution",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-78", "CWE-94", "CWE-95", "CWE-502", "CWE-77", "CWE-73"]
+    },
+    "SQL Injection": {
+      "label": "SQL Injection",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-89", "CWE-90", "CWE-91"]
+    },
+    "Command Injection": {
+      "label": "OS Command Injection",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-78", "CWE-77"]
+    },
+    "XSS": {
+      "label": "Cross-Site Scripting",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-79", "CWE-80", "CWE-83"]
+    },
+    "SSRF": {
+      "label": "Server-Side Request Forgery",
+      "owasp": "A10:2021 - SSRF",
+      "cwes": ["CWE-918"]
+    },
+    "XXE": {
+      "label": "XML External Entity (XXE) Injection",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "cwes": ["CWE-611"]
+    },
+    "Path Traversal": {
+      "label": "Path Traversal / Directory Traversal",
+      "owasp": "A01:2021 - Broken Access Control",
+      "cwes": ["CWE-22", "CWE-23", "CWE-36"]
+    },
+    "DoS": {
+      "label": "Denial of Service",
+      "owasp": "A04:2021 - Insecure Design",
+      "cwes": ["CWE-400", "CWE-404", "CWE-410", "CWE-401", "CWE-248", "CWE-674"]
+    },
+    "Buffer Overflow": {
+      "label": "Buffer Overflow",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-787", "CWE-120", "CWE-122", "CWE-190", "CWE-121"]
+    },
+    "Deserialization": {
+      "label": "Insecure Deserialization",
+      "owasp": "A08:2021 - Software and Data Integrity Failures",
+      "cwes": ["CWE-502"]
+    },
+    "Auth Bypass": {
+      "label": "Authentication Bypass",
+      "owasp": "A07:2021 - Identification and Authentication Failures",
+      "cwes": ["CWE-287", "CWE-288", "CWE-290", "CWE-303", "CWE-306", "CWE-307", "CWE-308", "CWE-294"]
+    },
+    "Information Disclosure": {
+      "label": "Information Disclosure",
+      "owasp": "A01:2021 - Broken Access Control",
+      "cwes": ["CWE-200", "CWE-201", "CWE-202", "CWE-209", "CWE-311", "CWE-532", "CWE-538", "CWE-615"]
+    },
+    "Weak Crypto": {
+      "label": "Weak Cryptography / Cryptographic Flaw",
+      "owasp": "A02:2021 - Cryptographic Failures",
+      "cwes": ["CWE-327", "CWE-328", "CWE-326", "CWE-310", "CWE-311", "CWE-312", "CWE-319"]
+    },
+    "TLS/SSL Misconfig": {
+      "label": "TLS/SSL Misconfiguration",
+      "owasp": "A02:2021 - Cryptographic Failures",
+      "cwes": ["CWE-295", "CWE-297", "CWE-322", "CWE-323"]
+    },
+    "File Upload": {
+      "label": "Unrestricted File Upload",
+      "owasp": "A08:2021 - Software and Data Integrity Failures",
+      "cwes": ["CWE-434"]
+    },
+    "Open Redirect": {
+      "label": "Open Redirect",
+      "owasp": "A01:2021 - Broken Access Control",
+      "cwes": ["CWE-601"]
+    },
+    "CSRF": {
+      "label": "Cross-Site Request Forgery",
+      "owasp": "A01:2021 - Broken Access Control",
+      "cwes": ["CWE-352"]
+    },
+    "Privilege Escalation": {
+      "label": "Privilege Escalation",
+      "owasp": "A01:2021 - Broken Access Control",
+      "cwes": ["CWE-269", "CWE-276", "CWE-732", "CWE-264", "CWE-250"]
+    },
+    "Access Control": {
+      "label": "Broken Access Control",
+      "owasp": "A01:2021 - Broken Access Control",
+      "cwes": ["CWE-284", "CWE-285", "CWE-639", "CWE-862", "CWE-863"]
+    },
+    "Log Injection": {
+      "label": "Log Injection / Log Forging",
+      "owasp": "A09:2021 - Security Logging and Monitoring Failures",
+      "cwes": ["CWE-117", "CWE-93"]
+    },
+    "Memory Corruption": {
+      "label": "Memory Corruption",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-416", "CWE-415", "CWE-125", "CWE-119", "CWE-476"]
+    },
+    "Race Condition": {
+      "label": "Race Condition / TOCTOU",
+      "owasp": "A04:2021 - Insecure Design",
+      "cwes": ["CWE-362", "CWE-367"]
+    },
+    "Resource Exhaustion": {
+      "label": "Resource Exhaustion",
+      "owasp": "A04:2021 - Insecure Design",
+      "cwes": ["CWE-770", "CWE-400", "CWE-772"]
+    },
+    "Security Misconfiguration": {
+      "label": "Security Misconfiguration",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "cwes": ["CWE-16", "CWE-2", "CWE-11", "CWE-15", "CWE-5", "CWE-1004", "CWE-453"]
+    },
+    "LDAP Injection": {
+      "label": "LDAP Injection",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-90"]
+    },
+    "Template Injection": {
+      "label": "Template Injection (SSTI)",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-94", "CWE-1336"]
+    },
+    "Header Injection": {
+      "label": "HTTP Header Injection / CRLF Injection",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-113", "CWE-93"]
+    },
+    "HTTP Request Smuggling": {
+      "label": "HTTP Request Smuggling",
+      "owasp": "A03:2021 - Injection",
+      "cwes": ["CWE-444"]
+    }
+  },
+  "default": "Security Vulnerability"
+}

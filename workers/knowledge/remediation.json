@@ -1,0 +1,393 @@
+{
+  "CWE-89": {
+    "remediation": [
+      "Use parameterized queries / prepared statements exclusively (never concatenate user input into SQL).",
+      "Apply strict input validation and allow-listing on all query parameters.",
+      "Enforce least-privilege database accounts for the application (no DDL/GRANT rights).",
+      "Escape special characters if dynamic SQL is unavoidable (defense in depth only)."
+    ],
+    "validation": [
+      "Verify the affected version is running and the query paths are exposed.",
+      "Confirm with a non-destructive proof-of-concept in a staging environment.",
+      "Check WAF/IDS rules for SQL injection signatures covering this endpoint."
+    ]
+  },
+  "CWE-79": {
+    "remediation": [
+      "Encode all dynamic output in the correct output context (HTML, attribute, URL, JS).",
+      "Apply a strict Content-Security-Policy (CSP) and set HttpOnly + Secure + SameSite cookies.",
+      "Sanitize and validate user input server-side; prefer allow-lists over deny-lists.",
+      "Set X-Content-Type-Options: nosniff and frame-ancestors headers."
+    ],
+    "validation": [
+      "Confirm input is reflected and not encoded in the target context.",
+      "Validate CSP header and cookie flags on the affected host.",
+      "Run an XSS-specific test payload against the endpoint."
+    ]
+  },
+  "CWE-78": {
+    "remediation": [
+      "Never pass user input directly to OS commands; use API libraries or subprocess argument lists.",
+      "Apply strict input validation and allow-lists for command parameters.",
+      "Run the application under a least-privilege OS account with restricted shell access.",
+      "Sanitize and reject metacharacters (; | & $ ` > < etc.) when commands are unavoidable."
+    ],
+    "validation": [
+      "Verify that input reaches a command execution sink.",
+      "Confirm OS account privileges of the service user.",
+      "Test with a benign echo payload in staging."
+    ]
+  },
+  "CWE-502": {
+    "remediation": [
+      "Avoid deserialization of untrusted data; prefer safe formats (JSON) and validated schemas.",
+      "Use a safe deserialization library and enforce type allow-lists.",
+      "Authenticate and integrity-protect serialized data with HMAC or signatures.",
+      "Apply vendor patch that addresses the vulnerable deserialization path."
+    ],
+    "validation": [
+      "Identify all deserialization entry points (cookies, RPC, AMQP payloads).",
+      "Confirm the patch/configuration is applied.",
+      "Run a safe deserialization PoC in staging."
+    ]
+  },
+  "CWE-918": {
+    "remediation": [
+      "Validate and allow-list all URLs, hostnames, and IPs the application may fetch.",
+      "Enforce egress filtering and network segmentation to internal resources.",
+      "Disable redirects to internal IP ranges and block metadata endpoints (169.254.169.254).",
+      "Use a dedicated proxy with egress allow-lists for outbound requests."
+    ],
+    "validation": [
+      "Verify which URLs are reachable from the vulnerable component.",
+      "Check egress firewall rules and metadata service access.",
+      "Confirm the allow-list is enforced at runtime."
+    ]
+  },
+  "CWE-611": {
+    "remediation": [
+      "Disable external entity resolution and DTD processing in the XML parser.",
+      "Use a secure parser configuration (e.g., defusedxml for Python).",
+      "Validate uploaded content type and reject XML from untrusted sources if possible."
+    ],
+    "validation": [
+      "Confirm XML parser configuration disables external entities.",
+      "Test with a benign XXE payload in staging.",
+      "Verify no sensitive files/URLs can be read."
+    ]
+  },
+  "CWE-22": {
+    "remediation": [
+      "Normalize and validate all file paths; reject traversal sequences and absolute paths.",
+      "Use a safe chroot/base-directory join that prevents escaping the root.",
+      "Enforce read permissions and least privilege on the served directory.",
+      "Patch the affected application to the latest vendor release."
+    ],
+    "validation": [
+      "Confirm traversal payloads are blocked at the application.",
+      "Verify filesystem permissions on served directories.",
+      "Test encoded traversal variants (%2e%2e/, ..%2f)."
+    ]
+  },
+  "CWE-400": {
+    "remediation": [
+      "Implement request rate-limiting and connection/concurrency limits at the service and LB.",
+      "Apply the vendor patch or upgrade to a fixed version.",
+      "Add load shedding, request timeouts, and resource quotas.",
+      "Monitor CPU/memory and enable alerting on anomaly thresholds."
+    ],
+    "validation": [
+      "Verify rate limits are enforced at the endpoint.",
+      "Confirm the service is upgraded to a patched version.",
+      "Load-test the endpoint against the CVE scenario."
+    ]
+  },
+  "CWE-787": {
+    "remediation": [
+      "Apply the vendor security patch or upgrade to a non-vulnerable version.",
+      "Enable compiler/hardening mitigations (ASLR, NX, stack canaries, FORTIFY_SOURCE).",
+      "Validate all buffer sizes and bounds in custom code.",
+      "Deploy the affected service behind a network ACL to limit exposure."
+    ],
+    "validation": [
+      "Confirm patched version is running.",
+      "Verify hardening mitigations are enabled on the binary/host.",
+      "Restrict access to the vulnerable service via firewall."
+    ]
+  },
+  "CWE-287": {
+    "remediation": [
+      "Enforce strong authentication on all exposed interfaces.",
+      "Require multi-factor authentication (MFA) for privileged access.",
+      "Apply vendor patch that fixes the authentication bypass.",
+      "Audit authentication logs for anomalies."
+    ],
+    "validation": [
+      "Confirm the patch addresses the bypass path.",
+      "Verify MFA is enforced for the affected service.",
+      "Review auth logs for unauthorized access attempts."
+    ]
+  },
+  "CWE-200": {
+    "remediation": [
+      "Apply the vendor patch to stop unintended information exposure.",
+      "Redact sensitive data in responses, logs, and error messages.",
+      "Restrict access to sensitive endpoints via ACLs.",
+      "Review application configuration for verbose error handling."
+    ],
+    "validation": [
+      "Verify sensitive data is no longer exposed.",
+      "Review logs and error pages for sensitive content.",
+      "Confirm access controls on the affected endpoint."
+    ]
+  },
+  "CWE-327": {
+    "remediation": [
+      "Use modern, approved cryptographic algorithms (AES-256, SHA-256+, ECDSA/RSA-2048+).",
+      "Replace broken ciphers and protocols (RC4, MD5, SHA-1, TLS < 1.2).",
+      "Upgrade the library/service to a version with fixed crypto defaults."
+    ],
+    "validation": [
+      "Audit cipher suites and TLS protocol versions offered.",
+      "Verify the crypto library version is patched.",
+      "Re-test with a crypto-scanner (e.g., TLS scanner)."
+    ]
+  },
+  "CWE-295": {
+    "remediation": [
+      "Fix certificate validation in the affected client/server (load proper CA bundle).",
+      "Upgrade to a version with corrected TLS verification behavior.",
+      "Configure strict TLS 1.2+ with validated certificate chains.",
+      "Remove test/self-signed certificates from production."
+    ],
+    "validation": [
+      "Verify certificates are valid and trusted.",
+      "Confirm TLS version and cipher configuration.",
+      "Test connection with an expired/untrusted cert to confirm rejection."
+    ]
+  },
+  "CWE-434": {
+    "remediation": [
+      "Validate file type, extension, and content (magic bytes) server-side.",
+      "Store uploads outside the web root and serve them via a controlled handler.",
+      "Apply the vendor patch or upgrade the affected application.",
+      "Scan uploaded files with AV and restrict upload size."
+    ],
+    "validation": [
+      "Verify that script execution is disabled in the upload directory.",
+      "Confirm file-type validation is enforced.",
+      "Attempt uploading a benign test file with a script extension in staging."
+    ]
+  },
+  "CWE-352": {
+    "remediation": [
+      "Implement anti-CSRF tokens for all state-changing requests.",
+      "Validate Origin/Referer headers on sensitive endpoints.",
+      "Set SameSite=Lax/Strict on session cookies.",
+      "Require re-authentication for high-impact actions."
+    ],
+    "validation": [
+      "Verify CSRF tokens are present and validated.",
+      "Confirm SameSite cookie attributes.",
+      "Test a cross-origin state-changing request."
+    ]
+  },
+  "CWE-269": {
+    "remediation": [
+      "Apply the vendor patch that fixes the privilege escalation.",
+      "Run services with least privilege and drop unnecessary capabilities.",
+      "Audit permissions on files, services, and sudo entries.",
+      "Monitor for unusual privilege elevation events."
+    ],
+    "validation": [
+      "Confirm the vulnerable component is patched.",
+      "Verify least-privilege configuration.",
+      "Check audit logs for privilege escalation attempts."
+    ]
+  },
+  "CWE-284": {
+    "remediation": [
+      "Enforce authorization on all server-side endpoints, never rely on client-side checks.",
+      "Implement role-based access control (RBAC) and object-level authorization.",
+      "Apply the vendor patch or upgrade the application.",
+      "Test all access-control paths (direct object reference, missing function-level access)."
+    ],
+    "validation": [
+      "Confirm authorization checks exist on each endpoint.",
+      "Test with an unprivileged account against restricted resources.",
+      "Verify RBAC configuration matches the security policy."
+    ]
+  },
+  "CWE-532": {
+    "remediation": [
+      "Remove credentials and sensitive data from logs.",
+      "Apply the vendor patch that prevents sensitive logging.",
+      "Configure log redaction and centralized log retention policies.",
+      "Restrict log file permissions to least privilege."
+    ],
+    "validation": [
+      "Search logs for credentials/secret patterns.",
+      "Verify log file permissions.",
+      "Confirm log management is centralized and monitored."
+    ]
+  },
+  "CWE-119": {
+    "remediation": [
+      "Apply the vendor security patch or upgrade to a fixed version.",
+      "Enable runtime hardening (ASLR, NX, RELRO, stack canaries).",
+      "Segment the network to limit access to the vulnerable service."
+    ],
+    "validation": [
+      "Confirm patched version is running.",
+      "Verify hardening flags and mitigations.",
+      "Restrict service exposure via firewall."
+    ]
+  },
+  "CWE-416": {
+    "remediation": [
+      "Apply the vendor patch fixing the use-after-free.",
+      "Enable hardening mitigations and memory sanitizers in dev.",
+      "Restrict network exposure of the affected service."
+    ],
+    "validation": [
+      "Confirm patched version is running.",
+      "Verify mitigations are enabled.",
+      "Test the specific CVE trigger in staging."
+    ]
+  },
+  "CWE-125": {
+    "remediation": [
+      "Apply the vendor patch or upgrade to a fixed version.",
+      "Validate all index/bounds arithmetic in custom code.",
+      "Enable boundary-checking tools during development and CI."
+    ],
+    "validation": [
+      "Confirm patched version is running.",
+      "Run fuzzing/boundary tests against the component.",
+      "Restrict service exposure."
+    ]
+  },
+  "CWE-117": {
+    "remediation": [
+      "Sanitize user-controlled data before writing to logs.",
+      "Apply the vendor patch if the logging library is affected.",
+      "Use structured logging with parameters (not string concatenation)."
+    ],
+    "validation": [
+      "Verify log injection payloads are neutralized.",
+      "Confirm logs do not accept CRLF from user input."
+    ]
+  },
+  "CWE-90": {
+    "remediation": [
+      "Use parameterized LDAP queries where supported.",
+      "Escape LDAP special characters per RFC 4514/4515.",
+      "Validate and allow-list user input against LDAP filters."
+    ],
+    "validation": [
+      "Verify LDAP filter injection is blocked.",
+      "Confirm escaping is applied to all user-controlled values."
+    ]
+  },
+  "CWE-1336": {
+    "remediation": [
+      "Apply the vendor patch or upgrade to a fixed version.",
+      "Disable user-controlled template evaluation.",
+      "Use safe template engines with sandboxing and allow-lists."
+    ],
+    "validation": [
+      "Verify template evaluation is disabled for untrusted input.",
+      "Confirm the engine is patched."
+    ]
+  },
+  "CWE-113": {
+    "remediation": [
+      "Sanitize user input for CR/LF characters before response header use.",
+      "Apply the vendor patch or upgrade the web framework.",
+      "Use framework-level header-setting APIs only."
+    ],
+    "validation": [
+      "Confirm CRLF injection is blocked.",
+      "Verify headers are set only through safe APIs."
+    ]
+  },
+  "CWE-444": {
+    "remediation": [
+      "Apply the vendor patch that fixes the smuggling weakness.",
+      "Normalize request parsing across proxies and backend (HTTP/2 where possible).",
+      "Enforce strict Content-Length and Transfer-Encoding handling."
+    ],
+    "validation": [
+      "Confirm the proxy and backend use consistent parsing.",
+      "Test with smuggling-specific payloads in staging."
+    ]
+  },
+  "CWE-770": {
+    "remediation": [
+      "Implement resource limits, quotas, and request size caps.",
+      "Add rate limiting at the load balancer and application.",
+      "Monitor resource usage and alert on anomalies."
+    ],
+    "validation": [
+      "Verify resource limits are enforced.",
+      "Load-test the endpoint against exhaustion scenarios."
+    ]
+  },
+  "CWE-772": {
+    "remediation": [
+      "Fix resource handle leaks in application code.",
+      "Apply the vendor patch if the leak is in a dependency.",
+      "Add resource monitoring and graceful degradation."
+    ],
+    "validation": [
+      "Confirm no unbounded resource growth under load.",
+      "Verify monitoring alerts are configured."
+    ]
+  },
+  "CWE-362": {
+    "remediation": [
+      "Use atomic operations and proper locking to eliminate TOCTOU races.",
+      "Apply the vendor patch that fixes the race condition.",
+      "Use safe temporary-file creation (O_EXCL, unique names)."
+    ],
+    "validation": [
+      "Confirm atomic operations are used for the affected paths.",
+      "Test concurrent access in staging."
+    ]
+  },
+  "CWE-367": {
+    "remediation": [
+      "Use atomic filesystem operations (O_NOFOLLOW, O_EXCL, secure temp dirs).",
+      "Apply the vendor patch addressing the symlink race.",
+      "Restrict write access to the affected directories."
+    ],
+    "validation": [
+      "Verify safe symlink handling is enforced.",
+      "Confirm directory write permissions are restricted."
+    ]
+  },
+  "CWE-16": {
+    "remediation": [
+      "Apply the vendor patch or upgrade the configuration library.",
+      "Harden the service configuration to the vendor/CIS recommendations.",
+      "Disable unused features, modules, and default accounts."
+    ],
+    "validation": [
+      "Verify the patched configuration is active.",
+      "Run a configuration benchmark (e.g., CIS scanner)."
+    ]
+  },
+  "default": {
+    "remediation": [
+      "Apply the latest vendor security patch or upgrade to a non-vulnerable version.",
+      "Restrict network access to the affected service (firewall/ACL least privilege).",
+      "Enable runtime hardening and monitoring (IDS/WAF alerts, audit logging).",
+      "Review application/OS configuration against the relevant CIS Benchmark."
+    ],
+    "validation": [
+      "Confirm the affected version is patched or mitigated.",
+      "Verify exposure is reduced (network segmentation, ACLs).",
+      "Run a re-scan to confirm the finding is resolved."
+    ]
+  }
+}

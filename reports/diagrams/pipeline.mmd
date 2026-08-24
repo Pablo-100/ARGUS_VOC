@@ -1,0 +1,28 @@
+flowchart TB
+    TRIG["Déclenchement<br/>démarrage + toutes les 6 h"]
+    DISC["1. nmap_network_scan<br/>découverte -sn"]
+    SCAN["2. scan_host<br/>-sS -sV -O -p-<br/>65535 ports + OS"]
+    DIFF["3. Différentiel Redis<br/>voc:scan:state"]
+    NEW["Nouvelle"]
+    STILL["Toujours présente"]
+    RES["Résolue"]
+    EVT["Événement MISP"]
+    ENRICH["4. enrich<br/>IOC MISP"]
+    ENHANCE["5. enhance<br/>EPSS, KEV, OSV,<br/>Exploit-DB, ATT&amp;CK, CIS"]
+    SCORE["6. score<br/>moteur de risque"]
+    INDEX["7. index_to_elk<br/>champ os + score"]
+    TICKET["8. create_ticket<br/>si risque >= 7"]
+    IRES["index_resolved"]
+    ES[("Elasticsearch<br/>vulnerabilities-*")]
+
+    TRIG --> DISC --> SCAN --> DIFF
+    DIFF --> NEW
+    DIFF --> STILL
+    DIFF --> RES
+    NEW --> EVT
+    EVT --> ENRICH
+    STILL --> ENRICH
+    ENRICH --> ENHANCE --> SCORE --> INDEX
+    INDEX --> TICKET
+    INDEX --> ES
+    RES --> IRES --> ES

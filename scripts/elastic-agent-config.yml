@@ -1,0 +1,207 @@
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      hints.default_config:
+        type: container
+        paths:
+          - /var/lib/docker/containers/${data.docker.container.id}/*.log
+      templates:
+        - condition:
+            contains:
+              docker.container.name: "voc"
+          config:
+            - type: container
+              paths:
+                - /var/lib/docker/containers/${data.docker.container.id}/*.log
+              fields:
+                log_type: docker_container
+                platform: voc
+                environment: production
+              fields_under_root: true
+
+filebeat.inputs:
+
+- type: container
+  paths:
+    - /var/lib/docker/containers/*/*.log
+  fields:
+    log_type: docker_container
+    platform: voc
+    environment: production
+  fields_under_root: true
+  processors:
+    - add_docker_metadata:
+        host: "unix:///var/run/docker.sock"
+    - decode_json_fields:
+        fields: ["message"]
+        target: "json"
+        overwrite_keys: true
+        add_error_key: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/syslog
+    - /var/log/syslog.1
+  fields:
+    log_type: system
+    source: syslog
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/auth.log
+  fields:
+    log_type: system
+    source: auth
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/kern.log
+  fields:
+    log_type: system
+    source: kernel
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/dmesg
+    - /var/log/dmesg.0
+  fields:
+    log_type: system
+    source: dmesg
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/dpkg.log
+  fields:
+    log_type: system
+    source: dpkg
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/apt/history.log
+    - /var/log/apt/term.log
+  fields:
+    log_type: system
+    source: apt
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/ufw.log
+  fields:
+    log_type: system
+    source: ufw_firewall
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/faillog
+    - /var/log/btmp
+  fields:
+    log_type: system
+    source: security
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/unattended-upgrades/unattended-upgrades.log
+  fields:
+    log_type: system
+    source: unattended_upgrades
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/cloud-init.log
+    - /var/log/cloud-init-output.log
+  fields:
+    log_type: system
+    source: cloud_init
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/apport.log
+  fields:
+    log_type: system
+    source: apport
+    platform: voc
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/alternatives.log
+  fields:
+    log_type: system
+    source: alternatives
+    platform: voc
+  fields_under_root: true
+
+- type: container
+  paths:
+    - /var/lib/docker/containers/*/*.log
+  fields:
+    log_type: docker_container_raw
+    platform: voc
+  fields_under_root: true
+  processors:
+    - add_docker_metadata:
+        host: "unix:///var/run/docker.sock"
+
+- type: log
+  enabled: true
+  paths:
+    - /opt/voc-platform/logs/icmp-monitor.log
+  fields:
+    log_type: icmp
+    source: icmp_monitor
+    platform: voc
+  fields_under_root: true
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.overwrite_keys: true
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+setup.ilm.enabled: false
+setup.template.name: "filebeat-8.11.0"
+setup.template.pattern: "filebeat-8.11.0-*"
+setup.template.settings.index.number_of_shards: 1
+setup.template.settings.index.number_of_replicas: 0
+setup.template.settings.index.mapping.total_fields.limit: 5000
+
+logging.level: info
+logging.to_stderr: true
+logging.metrics.enabled: true
+logging.metrics.period: 30s

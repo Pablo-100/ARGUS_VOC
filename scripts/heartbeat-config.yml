@@ -1,0 +1,94 @@
+heartbeat.monitors:
+
+- type: http
+  id: voc-elasticsearch
+  name: VOC Elasticsearch
+  hosts: ["http://localhost:9200"]
+  schedule: '@every 30s'
+  check.response:
+    status: [200]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+
+- type: http
+  id: voc-kibana
+  name: VOC Kibana
+  hosts: ["http://localhost:5601"]
+  schedule: '@every 30s'
+  check.response:
+    status: [200]
+
+- type: http
+  id: voc-logstash
+  name: VOC Logstash
+  hosts: ["http://localhost:9600"]
+  schedule: '@every 30s'
+  check.response:
+    status: [200]
+
+- type: http
+  id: voc-risk-engine
+  name: VOC Risk Engine
+  hosts: ["http://localhost:8000/health"]
+  schedule: '@every 30s'
+  check.response:
+    status: [200]
+
+- type: http
+  id: voc-rabbitmq
+  name: VOC RabbitMQ
+  hosts: ["http://localhost:15672"]
+  schedule: '@every 30s'
+  username: ${RABBITMQ_USER}
+  password: ${RABBITMQ_PASS}
+
+- type: http
+  id: voc-glpi
+  name: VOC GLPI
+  hosts: ["http://localhost:8080"]
+  schedule: '@every 30s'
+  check.response:
+    status: [200, 302]
+
+- type: icmp
+  id: voc-google-dns
+  name: Google DNS
+  hosts: ["8.8.8.8"]
+  schedule: '@every 30s'
+
+- type: icmp
+  id: voc-cloudflare-dns
+  name: Cloudflare DNS
+  hosts: ["1.1.1.1"]
+  schedule: '@every 30s'
+
+- type: icmp
+  id: voc-google
+  name: Google
+  hosts: ["google.com"]
+  schedule: '@every 60s'
+
+heartbeat.processors:
+  - add_fields:
+      target: ''
+      fields:
+        log_type: uptime
+        platform: voc
+        environment: production
+
+output.elasticsearch:
+  hosts: ["http://localhost:9200"]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  index: "heartbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+setup.ilm.enabled: false
+setup.template.name: "heartbeat"
+setup.template.pattern: "heartbeat-*"
+setup.template.settings.index.number_of_shards: 1
+setup.template.settings.index.number_of_replicas: 0
+
+logging.level: info
+logging.to_stderr: true
+logging.metrics.enabled: true
+logging.metrics.period: 30s

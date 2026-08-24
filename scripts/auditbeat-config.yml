@@ -1,0 +1,103 @@
+auditbeat.modules:
+
+- module: auditd
+  loggers:
+    - type: syscall
+      event_types:
+        - process
+        - socket
+        - file
+        - network
+        - pipe
+        - bpf
+        - kmod
+      include_exit_codes: true
+    - type: login
+    - type: pam
+    - type: ANOM_ABEND
+    - type: ANOM_ACCT
+    - type: ANOM_ALERT
+    - type: ANOM_CRYPTO
+    - type: ANOM_EXEC
+    - type: ANOM_FAILED_LOGIN
+    - type: ANOM_LOGIN
+    - type: ANOM_LOGIN_LOCATION
+    - type: ANOM_LOGIN_SERVICE
+    - type: ANOM_LOGIN_SESSIONS
+    - type: ANOM_MAX_EXCEEDED
+    - type: ANOM_MGMT
+    - type: ANOM_OBJECT
+    - type: ANOM_RBAC
+    - type: ANOM_ROOT_CMD
+    - type: ANOM_SEQUENCE
+    - type: USER_ACCT
+    - type: USER_AUTH
+    - type: USER_CHAUTHTOK
+    - type: USER_DAC
+    - type: USER_ERR
+    - type: USER_LOGIN
+    - type: USER_LOGOUT
+    - type: USER_MAC
+    - type: USER_MGMT
+    - type: USER_ACCT_MODIFIED
+  include_warnings: true
+
+- module: file_integrity
+  # /hostfs/* are the HOST's filesystems (read-only binds) - every change
+  # made on the server itself is tracked here, down to a single file.
+  paths:
+    - /hostfs/etc
+    - /hostfs/home
+    - /hostfs/root
+    - /hostfs/opt-voc
+  scan_at_start: true
+  scan_on_change: true
+  recursive: true
+  exclude_files:
+    - '(?i)\.(swp|swx|tmp)$'
+    - '/var/log/.*'
+
+- module: system
+  datasets:
+    - host
+    - process
+    - user
+    - package
+  process.include_top_n:
+    by_cpu: 20
+    by_memory: 20
+  user.detect_password_changes: true
+
+# stable identity for all events coming from this sensor
+name: voc-host
+
+auditbeat.processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_host_metadata:
+      when.contains:
+        host.name: "voc"
+  - add_cloud_metadata: ~
+  - add_fields:
+      target: ''
+      fields:
+        log_type: audit
+        platform: voc
+        environment: production
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+  index: "auditbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+setup.ilm.enabled: false
+setup.template.name: "auditbeat"
+setup.template.pattern: "auditbeat-*"
+setup.template.settings.index.number_of_shards: 1
+setup.template.settings.index.number_of_replicas: 0
+
+logging.level: info
+logging.to_stderr: true
+logging.metrics.enabled: true
+logging.metrics.period: 30s

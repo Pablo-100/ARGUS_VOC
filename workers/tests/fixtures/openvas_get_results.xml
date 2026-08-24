@@ -1,0 +1,38 @@
+<get_results_response status="200" status_text="OK">
+  <result id="c1001">
+    <name>Apache HTTP Server 2.4.49 Path Traversal (CVE-2021-41773)</name>
+    <owner><name>admin</name></owner>
+    <comment></comment>
+    <creation_time>2025-01-10T10:00:00Z</creation_time>
+    <modification_time>2025-01-10T10:00:00Z</modification_time>
+    <user_tags></user_tags>
+    <host>192.168.184.20</host>
+    <hostname>web01.lab.local</hostname>
+    <port>80/tcp</port>
+    <nvt oid="1.3.6.1.4.1.25623.1.0.103779">
+      <type>nvt</type>
+      <name>Apache HTTP Server 2.4.49 Path Traversal</name>
+      <family>Web Server Abuse</family>
+      <cve>CVE-2021-41773</cve>
+      <solution type="Update">Update Apache httpd to 2.4.51 or later.</solution>
+    </nvt>
+    <severity>7.5</severity>
+    <qod><value>80</value><type>remote_banner</type></qod>
+    <description>A flaw was found in Apache httpd 2.4.49 where path normalization allows traversal (../../etc/passwd).</description>
+  </result>
+  <result id="c1002">
+    <name>SSH Weak Algorithms Supported</name>
+    <host>192.168.184.20</host>
+    <port>22/tcp</port>
+    <nvt oid="1.3.6.1.4.1.25623.1.0.103990"><type>nvt</type><name>SSH Weak Algorithms</name></nvt>
+    <severity>4.3</severity>
+    <description>The remote SSH server is configured to allow weak encryption algorithms.</description>
+  </result>
+  <result id="c1003">
+    <name>OS Security Patch Management</name>
+    <host>192.168.184.21</host>
+    <port>general/tcp</port>
+    <severity>0.0</severity>
+    <description>Gathering OS security patches status failed.</description>
+  </result>
+</get_results_response>

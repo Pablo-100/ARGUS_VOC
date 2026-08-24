@@ -1,0 +1,1544 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% PACKAGES
+% ---------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+
+% ---------------------------------------------------------------------------
+% GEOMETRY & PAGE
+% ---------------------------------------------------------------------------
+\geometry{margin=2.2cm,headheight=22pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\definecolor{vocblue}{RGB}{0,102,153}
+\definecolor{vocdark}{RGB}{20,40,60}
+\definecolor{voclight}{RGB}{235,242,247}
+\definecolor{vocgreen}{RGB}{0,140,90}
+\definecolor{vocred}{RGB}{180,40,40}
+\definecolor{vocorange}{RGB}{210,120,0}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=vocblue,
+  urlcolor=vocblue,
+  citecolor=vocblue,
+  pdftitle={Rapport de stage -- VOC Platform},
+  pdfauthor={TBINI Mustapha Amin}
+}
+
+% ---------------------------------------------------------------------------
+% HEADERS & FOOTERS
+% ---------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{vocblue}{\textbf{VOC Platform -- Vulnerability Operations Center}}}
+\fancyhead[R]{\small\textcolor{vocdark}{Rapport de stage}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{vocblue}\leaders\hrule height \headrulewidth\hfill}}
+
+% ---------------------------------------------------------------------------
+% SECTION FORMATTING
+% ---------------------------------------------------------------------------
+\titleformat{\section}
+  {\Large\bfseries\color{vocdark}}
+  {\thesection}{0.8em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{vocblue}}
+  {\thesubsection}{0.7em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{vocdark}}
+  {\thesubsubsection}{0.6em}{}
+
+\captionsetup{font=small,labelfont={bf,color=vocblue}}
+
+% ---------------------------------------------------------------------------
+% CODE STYLE
+% ---------------------------------------------------------------------------
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{vocblue}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{vocgreen},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  rulecolor=\color{voclight},
+  breaklines=true,
+  backgroundcolor=\color{white},
+  tabsize=2
+}
+
+% ---------------------------------------------------------------------------
+% COMMANDS
+% ---------------------------------------------------------------------------
+\newcommand{\tool}[1]{\textbf{\texttt{#1}}}
+\newcommand{\techicon}[1]{\raisebox{-0.12em}{\includegraphics[height=1.0em]{icons/#1}}}
+\newcommand{\techblock}[4]{%
+  \par\medskip
+  \noindent
+  \begin{minipage}[t]{0.065\linewidth}\raggedleft\includegraphics[height=1.7em]{icons/#1}\end{minipage}%
+  \hspace{0.45em}%
+  \begin{minipage}[t]{0.88\linewidth}
+    {\large\bfseries\color{vocblue}#2}\\[2pt]
+    {\small\textbf{Description :} #3}\\
+    {\small\textbf{Pourquoi ce choix :} #4}
+  \end{minipage}
+  \par
+}
+
+\begin{document}
+
+% ===========================================================================
+% PAGE DE GARDE
+% ===========================================================================
+\begin{titlepage}
+\centering
+
+{\LARGE\bfseries\color{vocdark} TEK-UP University}\\[0.25cm]
+{\large \'Ecole d'Ing\'enierie \& Universit\'e priv\'ee}\\[0.2cm]
+{\color{vocblue}\rule{\linewidth}{1.2pt}}\\[1.2cm]
+
+{\Large\bfseries Soci\'et\'e : G\'erence Informatique}\\[0.5cm]
+
+\vfill
+
+{\large\color{vocdark} Rapport de stage}\\[0.3cm]
+{\Huge\bfseries\color{vocdark} VOC Platform}\\[0.5cm]
+{\LARGE\color{vocblue} Vulnerability Operations Center}\\[0.6cm]
+{\large Plateforme automatis\'ee de gestion des vuln\'erabilit\'es}
+
+\vfill
+
+\begin{minipage}{0.8\linewidth}
+\centering\small
+\begin{tabular}{rl}
+\toprule
+\textbf{R\'ealis\'e par} & TBINI Mustapha Amin \\[4pt]
+\textbf{Encadr\'ement} & Mr. MDAOUKHI Adel \\[4pt]
+\textbf{Soci\'et\'e d'accueil} & G\'erence Informatique \\[4pt]
+\textbf{Universit\'e} & TEK-UP University \\[4pt]
+\textbf{Ann\'ee universitaire} & 2025--2026 \\[4pt]
+\textbf{Lieu de d\'eploiement} & \texttt{192.168.184.135} (VMware) \\[4pt]
+\textbf{P\'eriode} & Stage universitaire -- ann\'ee 2025--2026 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+
+\vfill
+{\small\textcolor{gray} \today}
+\end{titlepage}
+
+% ===========================================================================
+% REMERCIEMENTS
+% ===========================================================================
+\section*{Remerciements}
+\addcontentsline{toc}{section}{Remerciements}
+
+Au terme de ce stage, je tiens \`a exprimer ma gratitude \`a toutes les personnes
+qui ont contribu\'e \`a la r\'ealisation de ce projet.
+
+Je remercie tout d'abord mon encadrant, \textbf{Mr.~MDAOUKHI Adel}, pour son
+accompagnement, ses conseils techniques et la confiance qu'il m'a accord\'ee tout
+au long de ce travail.
+
+Je remercie \'egalement la soci\'et\'e \textbf{G\'erence Informatique} pour son
+accueil, ainsi que l'ensemble de ses \'equipes pour leur disponibilit\'e et leur
+entraide.
+
+Enfin, je remercie l'universit\'e \textbf{TEK-UP University} et son corps
+enseignant pour la qualit\'e de la formation dispens\'ee durant l'ann\'ee
+universitaire 2025--2026.
+
+\clearpage
+
+% ===========================================================================
+% TABLE DES MATIERES
+% ===========================================================================
+\tableofcontents
+\clearpage
+
+% ===========================================================================
+% 1. INTRODUCTION GENERALE
+% ===========================================================================
+\section{Introduction g\'en\'erale}
+
+\subsection{Contexte}
+
+La s\'ecurit\'e des syst\`emes d'information est devenue un enjeu
+strat\'egique pour toutes les organisations. Chaque ann\'ee, des dizaines de
+milliers de vuln\'erabilit\'es sont publi\'ees dans les bases de r\'ef\'erence
+(CVE), et un nombre croissant d'entre elles sont activement exploit\'ees avant
+m\^eme la disponibilit\'e d'un correctif. Le catalogue CISA KEV recense les
+vuln\'erabilit\'es d\'ej\`a exploit\'ees dans la nature, et les outils
+d'analyse estiment que seule une fraction des CVE constitue un risque r\'eel
+pour une organisation donn\'ee.
+
+Face \`a ce constat, la simple collecte de vuln\'erabilit\'es ne suffit plus.
+Les \'equipes de s\'ecurit\'e doivent \^etre capables de :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{prioriser} efficacement les failles \`a traiter, en fonction
+        du risque r\'eel pour l'activit\'e ;
+  \item \textbf{corr\'eler} les d\'ecouvertes avec le contexte des menaces
+        (exploits publics, exploitation active, indicateurs de compromission) ;
+  \item \textbf{orchestrer} le traitement : ouverture de tickets, suivi de la
+        rem\'ediation, mesure de l'am\'elioration.
+\end{itemize}
+
+\subsection{Pr\'esentation du projet}
+
+Le projet d\'evelopp\'e durant ce stage, la \textbf{VOC Platform}
+(\emph{Vulnerability Operations Center}), est une plateforme automatis\'ee de
+gestion des vuln\'erabilit\'es qui :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item scanne p\'eriodiquement le r\'eseau interne (\textbf{tous les ports}
+        TCP, avec d\'etection des services et des syst\`emes d'exploitation) ;
+  \item enrichit chaque d\'ecouverte avec de l'\textbf{intelligence sur les
+        menaces} (NVD, MISP, EPSS, CISA KEV, OSV, Exploit-DB) ;
+  \item calcule un \textbf{score de risque} orient\'e m\'etier entre 0 et 10 ;
+  \item publie les r\'esultats dans une \textbf{stack de visualisation}
+        (Elasticsearch + Kibana) ;
+  \item ouvre automatiquement des \textbf{tickets de rem\'ediation} dans un
+        outil ITSM (GLPI) ;
+  \item partage les nouvelles d\'ecouvertes sous forme d'\textbf{\'ev\'enements
+        MISP} ;
+  \item supervise l'ensemble via une \textbf{observabilit\'e unifi\'ee}
+        (Fleet + Beats).
+\end{itemize}
+
+\subsection{Organisation du rapport}
+
+Ce rapport est organis\'e comme suit :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item la \textbf{probl\'ematique} \`a laquelle la plateforme apporte une
+        solution, puis la pr\'esentation de l'\textbf{environnement de stage} ;
+  \item la pr\'esentation des \textbf{outils et technologies} employ\'es et
+        les raisons de leur choix ;
+  \item l'\textbf{architecture} de la plateforme et sa \textbf{mod\'elisation
+        UML} (cas d'utilisation, classes, s\'equence, \'etats, d\'eploiement) ;
+  \item le \textbf{pipeline} de traitement des vuln\'erabilit\'es et le
+        \textbf{moteur de calcul du risque} ;
+  \item le \textbf{mod\`ele de donn\'ees}, la \textbf{s\'ecurit\'e},
+        l'\textbf{\'etat op\'erationnel}, les \textbf{difficult\'es}
+        rencontr\'ees et les \textbf{tests} ;
+  \item enfin, la \textbf{conclusion} g\'en\'erale du stage.
+\end{enumerate}
+
+% ===========================================================================
+% 2. PROBLEMATIQUE ET SOLUTION
+% ===========================================================================
+\section{Probl\'ematique et solution}
+
+\subsection{Le constat (probl\`eme)}
+
+Les \'equipes en charge de la s\'ecurit\'e des syst\`emes d'information font
+face \`a plusieurs difficult\'es r\'ecurrentes :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Scans manuels et ponctuels} : les audits de vuln\'erabilit\'es
+        sont r\'ealis\'es de mani\`ere ponctuelle et artisanale, avec des
+        outils disparates et des p\'erim\`etres partiels (liste fixe de ports,
+        fr\'equence irr\'eguli\`ere).
+  \item \textbf{Absence de vision centralis\'ee} : les r\'esultats sont
+        \'eparpill\'es dans des fichiers et aucun indicateur global n'est
+        disponible pour piloter la s\'ecurit\'e de l'infrastructure.
+  \item \textbf{Pas de corr\'elation avec les menaces} : une faille ancienne
+        \`a fort impact est trait\'ee de la m\^eme mani\`ere qu'une faille
+        r\'ecemment exploit\'ee dans la nature ; aucun contexte de menace
+        (EPSS, catalogue KEV, flux d'intelligence MISP) n'est pris en compte.
+  \item \textbf{Notation de risque incoh\'erente} : la seule note CVSS ne
+        refl\`ete pas l'exposition r\'eelle de l'entreprise (actif critique,
+        exploit public, exposition r\'eseau, etc.).
+  \item \textbf{Suivi de correction manuel} : l'ouverture et le suivi des
+        tickets de rem\'ediation sont effectu\'es \`a la main, ce qui
+        g\'en\`ere des oublis et des d\'elais.
+  \item \textbf{Observabilit\'e h\'et\'erog\`ene} : les journaux, les
+        m\'etriques et la disponibilit\'e des services sont suivis sans outil
+        commun ni historique centralis\'e.
+\end{itemize}
+
+\subsection{La solution apport\'ee}
+
+La \textbf{VOC Platform} automatise l'ensemble de ce cycle de vie :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Scan automatique et complet} : d\'ecouverte du r\'eseau
+        (\texttt{nmap -sn}), scan de \textbf{tous les ports TCP} (65535 ports,
+        \texttt{-p-}), d\'etection des versions de services (\texttt{-sV}) et
+        \textbf{empreinte du syst\`eme d'exploitation} (\texttt{-O}).
+  \item \textbf{Analyse diff\'erentielle} : chaque r\'esultat est compar\'e
+        \`a l'\'etat pr\'ec\'edent (m\'emoris\'e dans Redis) pour distinguer
+        les vuln\'erabilit\'es \emph{nouvelles}, \emph{toujours pr\'esentes}
+        ou \emph{r\'esolues}.
+  \item \textbf{Enrichissement et corr\'elation} : corr\'elation avec le flux
+        CVE de la NVD, recherche d'IOC dans MISP, ajout du score EPSS, de la
+        pr\'esence dans le catalogue CISA KEV, d'Exploit-DB et d'OSV.
+  \item \textbf{Score de risque m\'etier} : un moteur de risque d\'edi\'e
+        (FastAPI) combine CVSS, criticit\'e de l'actif, activit\'e de menace,
+        exploitabilit\'e, exposition r\'eseau, EPSS et KEV pour produire une
+        note normalis\'ee entre 0 et 10.
+  \item \textbf{Visualisation centralis\'ee} : tous les r\'esultats sont
+        index\'es dans Elasticsearch et consultables dans Kibana via des
+        tableaux de bord.
+  \item \textbf{Circuit ITSM automatis\'e} : toute vuln\'erabilit\'e dont le
+        risque est sup\'erieur ou \'egal \`a 7 g\'en\`ere automatiquement un
+        ticket dans GLPI.
+  \item \textbf{Partage de renseignements} : les nouvelles vuln\'erabilit\'es
+        sont publi\'ees sous forme d'\'ev\'enements MISP.
+  \item \textbf{Observabilit\'e unifi\'ee} : les agents Elastic (Fleet et
+        Beats) collectent les journaux, les m\'etriques, les flux r\'eseau,
+        les traces d'audit et la disponibilit\'e des services.
+\end{itemize}
+
+\subsection{Objectifs du projet}
+
+Les objectifs fix\'es au d\'ebut du stage \'etaient les suivants :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item d\'eployer une plateforme de scan automatique fiable et compl\`ete ;
+  \item assurer la corr\'elation des d\'ecouvertes avec les sources de
+        menaces ;
+  \item produire un score de risque orient\'e m\'etier, reproductible et
+        explicable ;
+  \item offrir une visibilit\'e centralis\'ee (tableaux de bord) ;
+  \item automatiser l'ouverture et le suivi des tickets de rem\'ediation ;
+  \item superviser la plateforme et les agents d\'eploy\'es.
+\end{enumerate}
+
+% ===========================================================================
+% 3. ENVIRONNEMENT DE STAGE
+% ===========================================================================
+\section{Environnement de stage}
+
+\subsection{Universit\'e TEK-UP University}
+
+TEK-UP University est un \'etablissement d'enseignement sup\'erieur
+d\'elivrant des formations d'ing\'enierie dans les domaines des technologies
+de l'information et de la communication. Le pr\'esent stage s'inscrit dans le
+cadre de l'ann\'ee universitaire 2025--2026 et du programme de formation
+d'ing\'enierie.
+
+\subsection{Soci\'et\'e G\'erence Informatique}
+
+G\'erence Informatique est une soci\'et\'e sp\'ecialis\'ee dans les services
+li\'es aux syst\`emes d'information : administration de r\'eseaux et de
+serveurs, gestion des parcs informatiques et s\'ecurit\'e des syst\`emes.
+C'est dans ce contexte que le besoin d'une plateforme centralis\'ee de gestion
+des vuln\'erabilit\'es a \'et\'e identifi\'e, afin de professionnaliser la
+surveillance s\'ecuritaire de l'infrastructure.
+
+\subsection{Encadrement}
+
+Le stage a \'et\'e encadr\'e par \textbf{Mr.~MDAOUKHI Adel}, qui a assur\'e le
+suivi technique du projet, la validation des choix d'architecture et la revue
+des d\'eveloppements r\'ealis\'es.
+
+\subsection{M\'ethodologie suivie}
+
+Le travail a \'et\'e conduit selon une d\'emarche it\'erative :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Analyse des besoins} : recensement des difficult\'es, des
+        p\'erim\`etres r\'eseau et des outils d\'ej\`a pr\'esents sur
+        l'infrastructure ;
+  \item \textbf{Conception} : choix de la stack technique, d\'efinition de
+        l'architecture et du pipeline de traitement ;
+  \item \textbf{D\'eveloppement} : r\'ealisation des modules (scan,
+        enrichissement, score, indexation, tickets), des diagrammes et des
+        tests unitaires ;
+  \item \textbf{D\'eploiement et int\'egration} : mise en place des services
+        Docker, configuration des agents Elastic, r\'esolution des
+        probl\`emes d'exploitation ;
+  \item \textbf{Validation et exploitation} : v\'erification de bout en bout,
+        analyse des r\'esultats et suivi op\'erationnel.
+\end{enumerate}
+
+% ===========================================================================
+% 4. OUTILS ET TECHNOLOGIES
+% ===========================================================================
+\section{Outils et technologies}
+
+Cette section d\'ecrit les outils et technologies utilis\'es dans le projet,
+ainsi que les raisons de leur choix. Les logos illustrent les technologies
+officielles employ\'ees.
+
+\subsection{Conteneurisation et d\'eploiement}
+
+\techblock{docker}{Docker}{Docker est une plateforme de conteneurisation qui
+permet d'embarquer une application et ses d\'ependances dans des conteneurs
+isol\'es et reproductibles. Chaque conteneur dispose de son propre espace
+processus, r\'eseau et syst\`eme de fichiers.}{La plateforme est compos\'ee de
+plus de dix-huit services interd\'ependants (bases de donn\'ees, courtiers,
+applications, agents de collecte). Docker garantit un d\'eploiement identique
+sur toute machine, simplifie la gestion des versions et acc\'el\`ere les
+red\'eploiements.}
+
+\techblock{docker}{Docker Compose}{Docker Compose permet de d\'efinir et
+d'orchestrer un ensemble de conteneurs multi-services \`a partir d'un unique
+fichier YAML (r\'eseaux, volumes, limites m\'emoire, variables
+d'environnement, ordre de d\'emarrage).}{Le fichier
+\texttt{docker-compose.yml} centralise la d\'efinition des 18 services
+applicatifs plus le serveur Fleet. C'est le point d'entr\'ee unique pour
+d\'eployer et administrer l'ensemble de la plateforme.}
+
+\subsection{D\'eveloppement}
+
+\techblock{python}{Python 3.11}{Python est un langage de programmation
+g\'en\'eraliste, interpr\'et\'e et riche d'un vaste \'ecosyst\`eme de
+biblioth\`eques (parsing, HTTP, tests, calcul).}{Les modules du pipeline
+(scan, enrichissement, score, indexation, tickets) sont \'ecrits en Python :
+il offre une syntaxe lisible, une int\'egration native avec
+\texttt{python-nmap}, \texttt{requests} et \texttt{pytest}, et acc\'el\`ere
+fortement le d\'eveloppement des clients d'API (MISP, GLPI, NVD, etc.).}
+
+\techblock{fastapi}{FastAPI}{FastAPI est un framework Python moderne et
+performant pour la construction d'API REST, bas\'e sur Pydantic pour la
+validation des donn\'ees et g\'en\'erant automatiquement une documentation
+OpenAPI.}{Le moteur de risque expose une API \texttt{POST /score} ainsi
+qu'une sonde de sant\'e \texttt{GET /health}. FastAPI a \'et\'e choisi pour sa
+vitesse d'ex\'ecution, la validation automatique des entr\'ees, la
+documentation interactive et sa faible latence.}
+
+\subsection{Ordonnancement et files de t\^aches}
+
+\techblock{celery}{Celery et Celery Beat}{Celery est un syst\`eme
+d'ex\'ecution de t\^aches asynchrones distribu\'ees ; Celery Beat est son
+planificateur p\'eriodique (crontab).}{Le pipeline est organis\'e en
+t\^aches asynchrones (\texttt{scan}, \texttt{enrich}, \texttt{enhance},
+\texttt{score}, \texttt{index\_to\_elk}, \texttt{create\_ticket})
+ex\'ecut\'ees par des workers parall\`eles. Celery g\`ere la r\'epartition,
+les nouvelles tentatives et le suivi des r\'esultats, tandis que Beat
+d\'eclenche le scan au d\'emarrage et toutes les 6 heures, ainsi que la
+synchronisation GLPI chaque heure.}
+
+\techblock{rabbitmq}{RabbitMQ}{RabbitMQ est un courtier de messages
+impl\'ementant le protocole AMQP (Advanced Message Queuing Protocol).}{Il sert
+de brique centralisatrice du pipeline : chaque famille de t\^aches poss\`ede
+sa file d\'ediqu\'ee (\texttt{scan}, \texttt{enrich}, \texttt{score},
+\texttt{index}, \texttt{ticket}), ce qui permet de parall\'eliser le
+traitement et d'absorber les pics de charge g\'en\'er\'es par les scans.}
+
+\techblock{redis}{Redis}{Redis est une base de donn\'ees cl\'e-valeur en
+m\'emoire, tr\`es rapide et compatible avec la plupart des langages.}{Redis
+joue deux r\^oles : conserver l'\'etat diff\'erentiel des scans
+(\texttt{voc:scan:state}) et servir de backend de r\'esultats Celery. Sa
+rapidit\'e est essentielle pour comparer \`a chaque cycle des milliers de
+vuln\'erabilit\'es sans p\'enaliser le pipeline.}
+
+\subsection{Analyse de vuln\'erabilit\'es}
+
+\techblock{nmap}{nmap}{nmap est l'outil de r\'ef\'erence pour la d\'ecouverte
+de r\'eseau, l'audit de ports et la reconnaissance de services et de
+syst\`emes d'exploitation.}{Il est utilis\'e avec les options
+\texttt{-sS -sV -O -p- -T4} pour scanner l'int\'egralit\'e des 65535 ports
+TCP, identifier les versions des services et reconna\^itre le syst\`eme
+d'exploitation des h\^otes. L'acc\`es aux biblioth\`eques Python
+(\texttt{python-nmap}) permet de l'int\'egrer nativement dans les t\^aches
+Celery.}
+
+\subsection{Intelligence sur les menaces}
+
+\techblock{misp}{MISP}{MISP (\emph{Malware Information Sharing Platform}) est
+une plateforme de partage d'intelligence sur les menaces : \'ev\'enements,
+attributs (IOC), taxonomies et corr\'elations.}{La plateforme y recherche des
+indicateurs de compromission li\'es \`a chaque CVE et y publie, \`a
+l'inverse, les nouvelles vuln\'erabilit\'es sous forme d'\'ev\'enements. C'est
+le pivot du volet \emph{renseignement} du pipeline.}
+
+\techblock{nvd}{NVD}{La \emph{National Vulnerability Database} est la base de
+r\'ef\'erence des CVE, g\'er\'ee par le NIST.}{L'API NVD fournit les
+m\'eta-donn\'ees de chaque CVE (score CVSS, CWE, r\'ef\'erences, versions
+impact\'ees) qui servent de socle \`a la corr\'elation produit/version
+$\rightarrow$ CVE.}
+
+\techblock{epss}{EPSS}{L'\emph{Exploit Prediction Scoring System} (FIRST)
+estime, avec un score entre 0 et 1, la probabilit\'e qu'une vuln\'erabilit\'e
+soit exploit\'ee dans les 30 jours.}{Le score EPSS est une entr\'ee du moteur
+de risque : il permet de prioriser les failles r\'eellement exploitables
+plut\^ot que de traiter uniquement par note CVSS.}
+
+\techblock{kev}{CISA KEV}{Le catalogue KEV (\emph{Known Exploited
+Vulnerabilities}) de la CISA recense les vuln\'erabilit\'es activement
+exploit\'ees par des acteurs malveillants.}{Toute CVE pr\'esente dans ce
+catalogue re\c coit un bonus de risque (2.0 par d\'efaut), car une
+exploitation en cours repr\'esente une menace imm\'ediate pour le r\'eseau.}
+
+\techblock{terminal}{OSV.dev \& Exploit-DB}{OSV.dev agr\`ege des
+vuln\'erabilit\'es open-source ; Exploit-DB indexe les exploits publics
+disponibles.}{Ces deux sources compl\`etent l'enrichissement : confirmation de
+l'existence d'un exploit public (\texttt{exploit\_available}) et donn\'ees
+suppl\'ementaires pour les composants open-source.}
+
+\subsection{Stockage et visualisation}
+
+\techblock{elasticsearch}{Elasticsearch}{Elasticsearch est un moteur de
+recherche et d'analyse distribu\'e bas\'e sur Lucene, avec indexation
+journali\`ere et agr\'egations en temps r\'eel.}{Il stocke tous les documents
+de vuln\'erabilit\'es (indices \texttt{vulnerabilities-*}), les donn\'ees
+d'observabilit\'e des Beats et l'\'etat des tickets (\texttt{glpi-*}). Sa
+rapidit\'e et ses agr\'egations permettent des tableaux de bord
+synth\'etiques.}
+
+\techblock{logstash}{Logstash}{Logstash est un pipeline de traitement de
+donn\'ees qui collecte, transforme et achemine les \'ev\'enements vers
+Elasticsearch.}{Il re\c coit les documents en HTTP (\texttt{:5044}) et les
+achemine vers les indices journaliers. Il centralise ainsi l'ingestion et
+facilite les transformations futures sans modifier les workers.}
+
+\techblock{kibana}{Kibana}{Kibana est l'interface de visualisation de la
+stack Elastic : tableaux de bord, vues de donn\'ees, d\'ecouvertes et
+administration de Fleet.}{Il fournit les tableaux de bord de
+vuln\'erabilit\'es, les vues de donn\'ees (Filebeat, Packetbeat, Metricbeat,
+Heartbeat, GLPI) et l'administration de Fleet. L'image a \'et\'e
+personnalis\'ee pour injecter les cl\'es de chiffrement \`a
+l'initialisation.}
+
+\subsection{Gestion des agents}
+
+\techblock{fleet}{Fleet Server et Elastic Agent}{Fleet Server est le point
+d'enr\^olement central des Elastic Agents ; il distribue les politiques et
+les int\'egrations de collecte.}{Fleet permet d'enr\^oler des agents sur des
+h\^otes externes (Linux/Windows) via une politique par type d'h\^ote et de
+superviser leur \'etat (\texttt{online}/\texttt{degraded}). C'est la brique
+de \emph{gouvernance des agents}.}
+
+\techblock{beats}{Les Beats (Filebeat, Metricbeat, Packetbeat, Auditbeat,
+Heartbeat)}{Les Beats sont des agents l\'egers de collecte de donn\'ees pour
+la stack Elastic.}{Chaque Beat couvre un besoin d'observabilit\'e : journaux
+(Filebeat), m\'etriques syst\`eme et Docker (Metricbeat), flux r\'eseau
+(Packetbeat), traces d'audit (Auditbeat) et disponibilit\'e des services
+(Heartbeat). Ils alimentent les tableaux de bord de supervision.}
+
+\subsection{Gestion des services informatiques}
+
+\techblock{glpi}{GLPI}{GLPI est une solution ITSM open-source de gestion des
+parcs informatiques, des incidents et des demandes, dot\'ee d'une API REST.}
+{C'est le circuit de rem\'ediation : le pipeline y cr\'ee automatiquement un
+ticket pour chaque vuln\'erabilit\'e dont le score de risque est $\geq 7$,
+avec une priorit\'e et une liste de v\'erifications (\emph{checklist})
+adapt\'ees \`a la s\'ev\'erit\'e.}
+
+\subsection{Infrastructure et versionnement}
+
+\techblock{ubuntu}{Ubuntu Server (VMware)}{Ubuntu Server est le syst\`eme
+d'exploitation h\^ote de la plateforme, h\'eberg\'e sur une machine virtuelle
+VMware (\texttt{192.168.184.135}).}{Il offre un \'ecosyst\`eme stable, des
+paquets r\'ecents pour Docker et les outils r\'eseau (dont nmap), ainsi
+qu'une documentation abondante.}
+
+\techblock{git}{Git}{Git est un syst\`eme de contr\^ole de version
+distribu\'e.}{L'ensemble du code (docker-compose, workers, configuration des
+agents, rapport) est versionn\'e dans un d\'ep\^ot Git local, ce qui garantit
+la tra\c cabilit\'e des modifications et la reproductibilit\'e du
+d\'eploiement.}
+
+\subsection{Tableau r\'ecapitulatif}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}l l X@{}}
+\toprule
+\textbf{Couche} & \textbf{Technologie} & \textbf{R\^ole} \\
+\midrule
+Orchestration & Celery + Celery Beat & Pipeline de t\^aches asynchrones et ordonnancement \\
+Courtier & RabbitMQ 3.12 & Files de messages distribu\'ees \\
+\'Etat/cache & Redis 7 & \'Etat de scan, backend de r\'esultats, cache \\
+Scanner & nmap (python-nmap) & D\'ecouverte + scan complet + OS \\
+Intel menaces & MISP & Partage et enrichissement d'\'ev\'enements \\
+Flux CVE & NVD API & Corr\'elation produit $\rightarrow$ CVE \\
+Contexte exploit & EPSS, CISA KEV, OSV, Exploit-DB & Probabilit\'e d'exploitation et exploits \\
+Moteur de risque & FastAPI & Calcul du score de risque \\
+ITSM & GLPI & Tickets de rem\'ediation et gestion de parc \\
+Recherche/viz & Elasticsearch + Kibana 8.11 & Indexation, tableaux de bord, alertes \\
+Ingestion & Logstash 8.11 & Pipeline HTTP $\rightarrow$ Elasticsearch \\
+Agents & Fleet Server / Elastic Agent / Beats & Collecte et gestion des agents \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\clearpage
+
+% ===========================================================================
+% 5. ARCHITECTURE
+% ===========================================================================
+\section{Architecture g\'en\'erale}
+
+\subsection{Vue d'ensemble}
+
+La plateforme fonctionne comme un ensemble de services Docker
+interconnect\'es : un pipeline Celery (coupl\'e \`a RabbitMQ et Redis) scanne
+le r\'eseau, enrichit et note les vuln\'erabilit\'es ; les r\'esultats sont
+index\'es dans la stack ELK et les tickets sont ouverts dans GLPI. La gestion
+des agents est assur\'ee par un serveur Fleet. Le sch\'ema suivant r\'esume
+les composants et leurs relations :
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\linewidth,keepaspectratio]{diagrams/architecture.png}
+\caption{Architecture g\'en\'erale de la plateforme VOC}
+\end{figure}
+
+\subsection{Gestion centralis\'ee des agents (Fleet)}
+
+Une des \'evolutions majeures du projet a \'et\'e l'ajout du serveur
+\textbf{Fleet Server} (Elastic Agent d\'edi\'e, port \texttt{:8220}). Il
+permet :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item d'enr\^oler des \textbf{agents externes} (h\^otes Linux/Windows hors
+        Docker) avec des politiques d\'edi\'ees (\texttt{linux\_hosts},
+        \texttt{windows\_hosts}) ;
+  \item de centraliser la configuration des collecteurs (int\'egrations
+        syst\`eme, logs, m\'etriques) ;
+  \item de superviser l'\'etat de chaque agent depuis Kibana.
+\end{itemize}
+
+L'image Kibana a \'et\'e personnalis\'ee pour injecter les cl\'es de
+chiffrement n\'ecessaires (\texttt{encryptedSavedObjects},
+\texttt{security} et \texttt{reporting}), ce qui a \'elimin\'e les erreurs de
+d\'emarrage et les \'ecrans de connexion fonctionnellement bloqu\'es.
+
+\subsection{Services et ports}
+
+\begin{center}
+\small
+\begin{longtable}{@{}l l l c@{}}
+\toprule
+\textbf{Service} & \textbf{Conteneur} & \textbf{Image} & \textbf{Port} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RabbitMQ & \texttt{voc-rabbitmq} & \texttt{rabbitmq:3.12-management-alpine} & 5672, 15672 \\
+Redis & \texttt{voc-redis} & \texttt{redis:7-alpine} & 6379 \\
+Elasticsearch & \texttt{voc-elasticsearch} & \texttt{elasticsearch:8.11.0} & 9200 \\
+Logstash & \texttt{voc-logstash} & \texttt{logstash:8.11.0} & 5044, 9600 \\
+Kibana & \texttt{voc-kibana} & \texttt{kibana:8.11.0} (custom) & 5601 \\
+Fleet Server & \texttt{voc-fleet-server} & \texttt{elastic-agent:8.11.0} & 8220 \\
+MariaDB (GLPI) & \texttt{voc-mariadb} & \texttt{mariadb:10.6} & 3306 \\
+MariaDB (MISP) & \texttt{voc-misp-db} & \texttt{mariadb:10.6} & -- \\
+Moteur de risque & \texttt{voc-risk-engine} & custom (FastAPI) & 8000 \\
+GLPI & \texttt{voc-glpi} & \texttt{diouxx/glpi:latest} & 8080 \\
+MISP & \texttt{voc-misp} & \texttt{ghcr.io/misp/misp-docker/misp-core} & 8443 \\
+Worker Celery & \texttt{voc-celery-worker} & custom (Python + nmap, root) & -- \\
+Beat Celery & \texttt{voc-celery-beat} & custom (Python + nmap) & -- \\
+Filebeat & \texttt{voc-elastic-agent} & \texttt{filebeat:8.11.0} & -- \\
+Packetbeat & \texttt{voc-packetbeat} & \texttt{packetbeat:8.11.0} & -- (h\^ote) \\
+Auditbeat & \texttt{voc-auditbeat} & \texttt{auditbeat:8.11.0} & -- \\
+Metricbeat & \texttt{voc-metricbeat} & \texttt{metricbeat:8.11.0} & -- \\
+Heartbeat & \texttt{voc-heartbeat} & \texttt{heartbeat:8.11.0} & -- (h\^ote) \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\subsection{Topologie r\'eseau}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{R\'eseau} & \textbf{P\'erim\`etre} \\
+\midrule
+\texttt{192.168.184.0/24} & R\'eseau SPA : h\^ote plateforme \texttt{.135} et agents externes \\
+\texttt{192.168.1.0/24} & R\'eseau LAN : h\^otes scann\'es et d\'ecouverts (routeurs, WAP, postes) \\
+\texttt{172.18.0.0/16} & R\'eseau bridge Docker des services \\
+\texttt{ens33} & \texttt{192.168.184.135} (interface principale) \\
+\texttt{ens34} & \texttt{192.168.87.3} (interface secondaire) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Structure du d\'ep\^ot}
+
+Le projet est organis\'e dans le r\'epertoire \texttt{/opt/voc-platform} :
+
+\begin{lstlisting}[language=bash,caption={Structure du d\'ep\^ot}]
+/opt/voc-platform/
+|-- docker-compose.yml          # 18 services + fleet-server
+|-- .env                        # Secrets et configuration
+|-- .env.example                # Gabarit (commitable)
+|-- README.md                   # Vue d'ensemble
+|-- PROJECT_REFERENCE.md        # R\'ef\'erence technique
+|-- elasticsearch/              # (configuration via docker-compose)
+|-- fleet-server/               # Configuration du serveur Fleet
+|-- kibana/
+|   |-- kibana.yml              # Configuration + cl\'es de chiffrement
+|   |-- Dockerfile              # Entrypoint personnalis\'e
+|   `-- dashboards/             # Tableaux de bord import\'es via API
+|-- logstash/
+|   `-- pipeline/voc.conf       # Input HTTP -> output Elasticsearch
+|-- risk-engine/
+|   |-- main.py                 # FastAPI POST /score, GET /health
+|   `-- requirements.txt
+|-- scripts/
+|   |-- *beat-config.yml        # Configurations des 5 Beats
+|   |-- elastic-agent-config.yml
+|   |-- icmp-monitor.sh         # Moniteur de ping ICMP (cron)
+|   |-- init-es-users.sh
+|   |-- misp-config.php
+|   `-- install-windows-agent.ps1
+|-- workers/
+|   |-- Dockerfile              # python:3.11 + nmap (USER root)
+|   |-- entrypoint-beat.sh      # Scan au d\'emarrage + lancement beat
+|   |-- tasks.py                # Application Celery et t\^aches
+|   |-- glpi_client.py          # Client REST GLPI
+|   |-- glpi_sync.py            # Synchronisation GLPI -> ELK
+|   |-- logstash_client.py      # Indexation ELK (incl. resolved)
+|   |-- misp_client.py          # Recherche/cr\'eation d'\'ev\'enements
+|   |-- nvd_client.py           # Recherche CVE NVD
+|   |-- ticket_enrichment.py    # Classification, ATT&CK, CIS, checklist
+|   |-- threat_intel.py         # EPSS, KEV, OSV, Exploit-DB
+|   |-- backfill_enrich.py      # R\'e-enrichissement historique
+|   |-- knowledge/              # Bases de connaissances (CWE, ATT&CK, CIS)
+|   `-- tests/                  # Tests unitaires
+`-- reports/                    # Rapport + diagrammes + ic\^ones
+\end{lstlisting}
+
+\clearpage
+
+% ===========================================================================
+% 6. MODELISATION UML
+% ===========================================================================
+\section{Mod\'elisation UML}
+
+La mod\'elisation UML permet de d\'ecrire les diff\'erents aspects de la
+plateforme : les interactions utilisateurs, la structure logicielle, les
+\'echanges entre composants et le cycle de vie des donn\'ees.
+
+\subsection{Diagramme de cas d'utilisation}
+
+Le diagramme de cas d'utilisation ci-dessous pr\'esente les acteurs et les
+fonctionnalit\'es principales de la plateforme :
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\linewidth,keepaspectratio]{diagrams/use_case.png}
+\caption{Diagramme de cas d'utilisation de la plateforme VOC}
+\end{figure}
+
+Les acteurs identifi\'es sont :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Administrateur s\'ecurit\'e} : d\'eclenche les scans, valide
+        les scores et administre les agents via Fleet ;
+  \item \textbf{\'Equipe IT / rem\'ediation} : traite les tickets ouverts et
+        confirme la r\'esolution ;
+  \item \textbf{Analyste SOC} : consulte les enrichissements et les tableaux
+        de bord.
+\end{itemize}
+
+\subsection{Diagramme de classes}
+
+Le diagramme de classes pr\'esente la structure du module des workers Celery,
+avec les principales classes et leurs relations :
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\linewidth,keepaspectratio]{diagrams/class.png}
+\caption{Diagramme de classes du module workers}
+\end{figure}
+
+La classe centrale \texttt{CeleryTasks} orchestre les t\^aches du pipeline et
+d\'el\`egue aux clients externes (\texttt{MispClient}, \texttt{NvdClient},
+\texttt{ThreatIntel}, \texttt{RiskEngineClient}, \texttt{GlpiClient},
+\texttt{LogstashClient}) ainsi qu'\`a la brique de scan
+(\texttt{NmapScanner}) et au stockage d'\'etat (\texttt{RedisStore}).
+
+\subsection{Diagramme de s\'equence}
+
+Le diagramme de s\'equence d\'etaille l'\'echange de messages lors d'un cycle
+de scan et de traitement d'une vuln\'erabilit\'e :
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth,keepaspectratio]{diagrams/sequence_scan.png}
+\caption{Diagramme de s\'equence du cycle de scan et de traitement}
+\end{figure}
+
+\subsection{Diagramme d'\'etats}
+
+Le diagramme d'\'etats illustre le cycle de vie d'une vuln\'erabilit\'e, de sa
+d\'ecouverte \`a sa r\'esolution :
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\linewidth,keepaspectratio]{diagrams/state.png}
+\caption{Diagramme d'\'etats du cycle de vie d'une vuln\'erabilit\'e}
+\end{figure}
+
+\subsection{Diagramme de d\'eploiement}
+
+Le diagramme de d\'eploiement pr\'esente la r\'epartition physique des
+composants sur l'h\^ote VMware et les h\^otes externes :
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\linewidth,keepaspectratio]{diagrams/deployment.png}
+\caption{Diagramme de d\'eploiement de la plateforme}
+\end{figure}
+
+\clearpage
+
+% ===========================================================================
+% 7. PIPELINE
+% ===========================================================================
+\section{Pipeline de gestion des vuln\'erabilit\'es}
+
+\subsection{D\'eroulement g\'en\'eral}
+
+Le pipeline est d\'eclench\'e par Celery Beat : \textbf{au d\'emarrage du
+conteneur} (via le script d'entr\'ee \texttt{entrypoint-beat.sh}) puis
+\textbf{toutes les 6 heures} (\texttt{crontab hour='*/6'}). Chaque cycle passe
+par les \'etapes suivantes :
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.68\linewidth,keepaspectratio]{diagrams/pipeline.png}
+\caption{Pipeline de scan, enrichissement et indexation des vuln\'erabilit\'es}
+\end{figure}
+
+\subsection{Description des \'etapes}
+
+\begin{center}
+\small
+\begin{longtable}{@{}l >{\raggedright\arraybackslash}p{0.66\linewidth}@{}}
+\toprule
+\textbf{\'Etape} & \textbf{Description} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{nmap\_network\_scan} & T\^ache p\'eriodique (d\'emarrage + toutes les
+6\,h) qui d\'ecouvre les h\^otes actifs avec \texttt{nmap -sn} et renvoie la
+liste des h\^otes. \\
+\texttt{scan\_host} & Scan complet par h\^ote : \texttt{nmap -sS -sV
+--version-intensity 5 -O -p- -T4}, c'est-\`a-dire l'\textbf{int\'egralit\'e
+des 65535 ports TCP}, la version des services et la \textbf{d\'etection du
+syst\`eme d'exploitation} (\texttt{osmatch}). Le champ \texttt{os} est
+transmis au document index\'e. \\
+\texttt{process\_network\_results} & Rappel du \emph{chord} : compare les
+r\'esultats \`a l'\'etat m\'emoris\'e (\texttt{voc:scan:state} dans Redis) et
+classe chaque cl\'e \texttt{h\^ote|cve|port} en \emph{nouvelle},
+\emph{toujours pr\'esente} ou \emph{r\'esolue}, puis d\'eclenche le
+sous-pipeline adapt\'e. \\
+\texttt{enrich} & Recherche MISP (\texttt{restSearch}) de la CVE et
+rattachement des IOC correspondants. \\
+\texttt{enhance} & Enrichissement approfondi : EPSS, CISA KEV, OSV,
+Exploit-DB, VirusTotal, classification OWASP, tactiques/techniques MITRE
+ATT\&CK, rem\'ediation, durcissement CIS et liste de v\'erifications. \\
+\texttt{score} & Appel du moteur de risque (\texttt{POST /score}) pour
+calculer le score 0--10 et la s\'ev\'erit\'e. \\
+\texttt{index\_to\_elk} & Envoi du document enrichi (y compris le champ
+\texttt{os}) \`a Logstash (\texttt{:5044}), qui l'achemine vers l'indice
+\texttt{vulnerabilities-AAAA.MM.JJ}. \\
+\texttt{create\_ticket} & Cr\'eation d'un ticket GLPI si
+\texttt{risk\_score >= 7}, avec une checklist en suivi. La d\'edouplication
+(\texttt{find\_existing\_ticket}) v\'erifie l'absence de ticket ouvert pour
+le m\^eme (\texttt{h\^ote}, \texttt{CVE}). \\
+\texttt{sync\_glpi\_to\_elk} & T\^ache horaire qui synchronise l'\'etat des
+tickets GLPI vers l'indice \texttt{glpi-*} pour les tableaux de bord. \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\subsection{Analyse diff\'erentielle}
+
+L'\'etat de chaque d\'ecouverte est repr\'esent\'e par une cl\'e
+\texttt{h\^ote|cve|port} stock\'ee dans Redis. \`A chaque cycle :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item une cl\'e absente de l'\'etat pr\'ec\'edent est class\'ee
+        \textbf{nouvelle} (cr\'eation d'un \'ev\'enement MISP, enrichissement
+        complet, ticket si le risque est suffisant) ;
+  \item une cl\'e pr\'esente dans les deux \'etats est class\'ee
+        \textbf{toujours pr\'esente} (r\'e-enrichissement sans doublon de
+        ticket ou d'\'ev\'enement) ;
+  \item une cl\'e pr\'esente pr\'ec\'edemment mais absente maintenant est
+        class\'ee \textbf{r\'esolue} (\texttt{index\_resolved}).
+\end{itemize}
+
+Ce m\'ecanisme permet de mesurer l'\'evolution du risque dans le temps et
+d'\'eviter la duplication des tickets.
+
+\subsection{Synchronisation GLPI $\rightarrow$ ELK}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth,keepaspectratio]{diagrams/glpi_sync.png}
+\caption{Synchronisation horaire de l'\'etat des tickets GLPI}
+\end{figure}
+
+\subsection{Ordonnancement et files}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l l X@{}}
+\toprule
+\textbf{T\^ache} & \textbf{Planification} & \textbf{Description} \\
+\midrule
+\texttt{nmap\_network\_scan} & d\'emarrage + \texttt{0 */6 * * *} & Scan complet du sous-r\'eseau + diff\'erentiel \\
+\texttt{sync\_glpi\_to\_elk} & \texttt{0 * * * *} (horaire) & Synchronisation des tickets GLPI vers ELK \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Les t\^aches sont rout\'ees vers des files RabbitMQ d\'edi\'ees :
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l l X@{}}
+\toprule
+\textbf{T\^ache} & \textbf{File} & \textbf{R\^ole} \\
+\midrule
+\texttt{discovery} / \texttt{scan\_host} & \texttt{scan} & D\'ecouverte et scan (nmap) \\
+\texttt{enrich} / \texttt{enhance} & \texttt{enrich} & Enrichissement intelligence \\
+\texttt{score} & \texttt{score} & Calcul du score de risque \\
+\texttt{index\_to\_elk} & \texttt{index} & Envoi vers Logstash/Elasticsearch \\
+\texttt{create\_ticket} & \texttt{ticket} & Cr\'eation des tickets GLPI \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+La configuration du worker est la suivante :
+
+\begin{lstlisting}[language=bash,caption={Commande du worker Celery}]
+celery -A tasks worker --loglevel=info --concurrency=2 \
+    -Q scan,enrich,score,index,ticket
+\end{lstlisting}
+
+\clearpage
+
+% ===========================================================================
+% 8. MOTEUR DE RISQUE
+% ===========================================================================
+\section{Moteur de calcul du risque}
+
+Le moteur de risque est un service FastAPI sans \'etat qui transforme la note
+CVSS brute en un score de risque orient\'e \emph{m\'etier} en appliquant des
+bonus li\'es au contexte.
+
+\subsection{Entr\'ees}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l l X@{}}
+\toprule
+\textbf{Champ} & \textbf{Intervalle} & \textbf{Signification} \\
+\midrule
+\texttt{cvss\_base} & 0--10 & Note CVSS de base \\
+\texttt{is\_critical\_asset} & bool\'een & L'actif est critique pour l'activit\'e \\
+\texttt{misp\_threat\_active} & bool\'een & Intelligence de menace active (MISP) \\
+\texttt{exploit\_available} & bool\'een & Un exploit public existe \\
+\texttt{network\_exposure} & 0--1 & Facteur d'exposition r\'eseau \\
+\texttt{epss\_score} & 0--1 & Probabilit\'e d'exploitation EPSS \\
+\texttt{in\_kev} & bool\'een & Pr\'esence dans le catalogue CISA KEV \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Algorithme de notation}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}X l@{}}
+\toprule
+\textbf{Condition} & \textbf{Bonus} \\
+\midrule
+Note de base & \texttt{cvss\_base} \\
+\texttt{is\_critical\_asset} & $+$ \texttt{cvss\_base} $\times 0.5$ \\
+\texttt{misp\_threat\_active} & $+$ 2.0 \\
+\texttt{exploit\_available} & $+$ 1.5 \\
+\texttt{network\_exposure} $> 0$ & $+$ \texttt{network\_exposure} $\times 2$ \\
+\texttt{in\_kev} & $+$ \texttt{RISK\_KEV\_BOOST} (2.0 par d\'efaut) \\
+\texttt{epss\_score} $\geq$ seuil (0.5) & $+$ \texttt{RISK\_EPSS\_BOOST} (1.0 par d\'efaut) \\
+\midrule
+\textbf{Note finale} & $\min(\text{score}, 10)$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\small
+\begin{tabular}{lc}
+\toprule
+\textbf{S\'ev\'erit\'e} & \textbf{Intervalle de score} \\
+\midrule
+\textcolor{vocred}{Critique} & $\geq 9$ \\
+\textcolor{vocorange}{\'Elev\'ee} & $\geq 7$ et $< 9$ \\
+\textcolor{blue}{Moyenne} & $\geq 4$ et $< 7$ \\
+\textcolor{vocgreen}{Faible} & $< 4$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Sch\'ema de d\'ecision}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.6\linewidth,keepaspectratio]{diagrams/risk_engine.png}
+\caption{Sch\'ema de d\'ecision du moteur de risque}
+\end{figure}
+
+\subsection{Exemples de calcul}
+
+\textbf{Exemple 1 --} CVE-2024-6387 (OpenSSH \emph{regreSSHion}) sur un actif
+critique, exploit public disponible, pr\'esente dans le catalogue KEV, score
+EPSS de 0.99 et exposition totale ($= 1.0$) :
+
+\begin{center}
+\small
+\begin{tabular}{l r}
+\toprule
+\textbf{Composant} & \textbf{Valeur} \\
+\midrule
+Note CVSS de base & 8.1 \\
+Bonus actif critique ($8.1 \times 0.5$) & $+4.05$ \\
+Bonus exploit public & $+1.5$ \\
+Bonus exposition ($1.0 \times 2$) & $+2.0$ \\
+Bonus KEV & $+2.0$ \\
+Bonus EPSS ($0.99 \geq 0.5$) & $+1.0$ \\
+\midrule
+Score brut & 18.65 \\
+\textbf{Score final} & \textbf{10.0} (Critique) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Exemple 2 --} Vuln\'erabilit\'e CVSS 4.3 sur un actif non critique,
+sans exploit public, EPSS de 0.01, absente du KEV, exposition faible
+($= 0.2$) :
+
+\begin{center}
+\small
+\begin{tabular}{l r}
+\toprule
+\textbf{Composant} & \textbf{Valeur} \\
+\midrule
+Note CVSS de base & 4.3 \\
+Bonus exposition ($0.2 \times 2$) & $+0.4$ \\
+\midrule
+Score brut & 4.7 \\
+\textbf{Score final} & \textbf{4.7} (Moyenne) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Ces deux exemples illustrent l'int\'er\^et du mod\`ele : une faille \`a fort
+impact r\'eellement exploit\'ee est port\'ee \`a un niveau \emph{Critique},
+tandis qu'une faille \`a faible exposition reste \emph{Moyenne}.
+
+\subsection{R\`egles de cr\'eation des tickets GLPI}
+
+\begin{itemize}[leftmargin=1.6em]
+  \item Ticket cr\'e\'e uniquement si \texttt{risk\_score >= 7.0}.
+  \item \textbf{Urgence} : 5 (critique) si risque $\geq 9$, sinon 4.
+  \item \textbf{Impact} : 4 (toujours).
+  \item \textbf{Priorit\'e} : 5 (tr\`es \'elev\'ee) si risque $\geq 7$, sinon 4.
+  \item \textbf{Titre} : \texttt{[VOC] \{s\'ev\'erit\'e\} - \{CVE\} sur \{h\^ote\}}.
+\end{itemize}
+
+\clearpage
+
+% ===========================================================================
+% 9. MODELE DE DONNEES
+% ===========================================================================
+\section{Mod\`ele de donn\'ees et stockage}
+
+\subsection{Indices Elasticsearch}
+
+\begin{center}
+\small
+\begin{longtable}{@{}p{0.34\linewidth} p{0.18\linewidth} p{0.42\linewidth}@{}}
+\toprule
+\textbf{Mod\`ele d'indice} & \textbf{Source} & \textbf{Contenu} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{vulnerabilities-AAAA.MM.JJ} & Logstash & R\'esultats de scan avec scores de risque \\
+\texttt{filebeat-8.11.0-AAAA.MM.JJ} & Filebeat & Journaux Docker, syst\`eme, ICMP \\
+\texttt{packetbeat-8.11.0-AAAA.MM.JJ} & Packetbeat & M\'etadonn\'ees de trafic r\'eseau \\
+\texttt{auditbeat-8.11.0-AAAA.MM.JJ} & Auditbeat & \'Ev\'enements processus/fichiers/utilisateurs \\
+\texttt{metricbeat-8.11.0-AAAA.MM.JJ} & Metricbeat & M\'etriques syst\`eme, Docker, services \\
+\texttt{heartbeat-8.11.0-AAAA.MM.JJ} & Heartbeat & V\'erifications de disponibilit\'e \\
+\texttt{glpi-AAAA.MM.JJ} & Logstash & \'Etat des tickets GLPI synchronis\'e \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\subsection{Vues de donn\'ees Kibana}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X l@{}}
+\toprule
+\textbf{ID} & \textbf{Mod\`ele} & \textbf{Nom} \\
+\midrule
+\texttt{5ec5e7c3-...} & \texttt{filebeat-*} & VOC Filebeat Logs \\
+\texttt{8cd32128-...} & \texttt{packetbeat-*} & VOC Network Traffic \\
+\texttt{943fb14e-...} & \texttt{auditbeat-*} & VOC Audit Trail \\
+\texttt{metricbeat-voc} & \texttt{metricbeat-*} & VOC Metrics \\
+\texttt{heartbeat-voc} & \texttt{heartbeat-*} & VOC Uptime \\
+\texttt{997fc760-...} & \texttt{vulnerabilities-*} & VOC Vulnerabilities \\
+-- & \texttt{glpi-*} & GLPI Tickets \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Exemple de document de vuln\'erabilit\'e}
+
+Un document index\'e via Logstash contient les champs suivants :
+
+\begin{lstlisting}[language=,caption={Document de vuln\'erabilit\'e index\'e (abr\'eg\'e)}]
+{
+  "@timestamp": "2026-08-15T04:57:00Z",
+  "host_ip": "192.168.1.1",
+  "os": "Netgear WGR614v7",
+  "cve": "CVE-2017-9765",
+  "cvss": 9.0,
+  "risk_score": 10.0,
+  "severity": "Critical",
+  "port": "7547/tcp",
+  "source": "voc-nmap",
+  "status": "active",
+  "epss_score": 0.80,
+  "in_kev": true,
+  "exploit_available": true,
+  "vulnerability_type": "Security Vulnerability",
+  "cwe_ids": ["CWE-78"],
+  "attack_tactics": ["Initial Access"],
+  "attack_techniques": ["T1190"],
+  "checklist": [ { "id": "VAL-01", "category": "Validation", "done": false } ],
+  "technical_description": "## Vulnerability Overview ..."
+}
+\end{lstlisting}
+
+Le champ \texttt{os} est d\'esormais pr\'esent gr\^ace \`a la d\'etection du
+syst\`eme d'exploitation, et le champ \texttt{risk\_score} alimente les
+tableaux de bord et les r\`egles de tickets.
+
+\clearpage
+
+% ===========================================================================
+% 10. SECURITE
+% ===========================================================================
+\section{S\'ecurit\'e de la plateforme}
+
+\subsection{Chiffrement de Kibana}
+
+Kibana n\'ecessite des cl\'es de chiffrement pour prot\'eger les objets
+sauv\'egard\'es, les sessions et les rapports. Trois cl\'es ont \'et\'e
+inject\'ees via les variables d'environnement suivantes :
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Variable} & \textbf{R\^ole} \\
+\midrule
+\texttt{XPACK\_SECURITY\_ENCRYPTIONKEY} & Chiffrement des sessions et donn\'ees s\'ecuris\'ees \\
+\texttt{XPACK\_ENCRYPTEDSAVEDOBJECTS\_ENCRYPTIONKEY} & Chiffrement des objets sauv\'egard\'es \\
+\texttt{XPACK\_REPORTING\_ENCRYPTIONKEY} & Chiffrement des rapports \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Authentification}
+
+Chaque service dispose de m\'ecanismes d'authentification : utilisateur
+\texttt{elastic} pour Elasticsearch/Kibana, jetons d'application et
+d'utilisateur pour l'API GLPI, et cl\'e API pour MISP. Les secrets sont
+stock\'es dans le fichier \texttt{.env} et inject\'es dans les conteneurs.
+
+\subsection{Isolation des conteneurs}
+
+La plateforme utilise des r\'eseaux et volumes Docker d\'edi\'es. Le worker
+de scan ex\'ecute nmap en tant que \texttt{root} avec la capacit\'e
+\texttt{NET\_RAW} pour permettre le scan SYN (\texttt{-sS}) et la d\'etection
+OS (\texttt{-O}) ; cette ex\'ecution privil\'egi\'ee est limit\'ee au seul
+conteneur de scan. Les limites m\'emoire sont d\'efinies par service afin
+d'\'eviter qu'un conteneur n'\'epuise les ressources de l'h\^ote.
+
+\subsection{Supervision des agents}
+
+Fleet centralise l'enr\^olement des agents et la distribution des politiques.
+L'\'etat de chaque agent (\texttt{online}, \texttt{offline}, \texttt{degraded})
+est visible depuis Kibana, ce qui permet de d\'etecter rapidement les agents
+qui ne transmettent plus de donn\'ees.
+
+\subsection{Transport des donn\'ees}
+
+En environnement de laboratoire, les certificats autog\'en\'er\'es sont
+utilis\'es. Les clients (MISP, GLPI, Elasticsearch) acceptent une
+v\'erification SSL d\'esactivable via des variables d'environnement
+(\texttt{MISP\_VERIFY\_SSL}, \texttt{GLPI\_VERIFY\_SSL}) afin de permettre un
+durcissement lors d'un passage en production.
+
+\clearpage
+
+% ===========================================================================
+% 11. ETAT OPERATIONNEL
+% ===========================================================================
+\section{\'Etat op\'erationnel du d\'eploiement}
+
+\subsection{Sant\'e de la plateforme}
+
+La plateforme est enti\`erement fonctionnelle : les 20 services Docker
+(18 applicatifs + serveur Fleet + t\^ache d'initialisation ponctuelle) sont
+d\'eploy\'es et, pour la quasi-totalit\'e, \emph{healthy}.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Indicateur} & \textbf{Valeur} \\
+\midrule
+Conteneurs Docker & 20 d\'eploy\'es (18 + Fleet Server + initialisation) \\
+Cluster Elasticsearch & 1 n\oe ud, statut \textcolor{vocgreen}{\textbf{green}} \\
+Shards & 129 primaires actifs, 0 non-assign\'es \\
+Documents de vuln\'erabilit\'es (total) & 5{,}041 \\
+Documents vuln\'erabilit\'es du jour (08.15) & 2{,}992 \\
+H\^otes analys\'es & 4 (dont routeur \texttt{192.168.1.1}) \\
+H\^otes actifs d\'ecouverts (LAN) & 8 (routeurs, WAP, postes, serveurs) \\
+Tickets GLPI & 419 (statut = nouveau, avec checklists) \\
+\'Ev\'enements MISP & 1{,}300+ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Preuves de l'extension du scan}
+
+Le passage au scan complet a \'et\'e v\'erifi\'e en production :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item le scan d\'emarre \textbf{au d\'emarrage du conteneur} puis toutes
+        les 6\,h (ex\'ecution v\'erifi\'ee) ;
+  \item \textbf{d\'etection du syst\`eme d'exploitation} op\'erationnelle :
+        ex.\ \texttt{Linux 5.0 - 5.14} pour \texttt{192.168.1.18}, et lors de
+        la d\'ecouverte : routeur Netgear WGR614, point d'acc\`es TP-LINK
+        TD-W8963N, poste Windows 11 et smartphones Android ;
+  \item le port \texttt{7547/tcp} (TR-069, hors de l'ancienne liste de 41
+        ports) a \'et\'e d\'ecouvert, preuve que l'\textbf{int\'egralit\'e des
+        ports} est maintenant scann\'ee ; il a d\'eclench\'e les tickets GLPI
+        \texttt{\#418} et \texttt{\#419} (critiques, h\^ote
+        \texttt{192.168.1.1}) ;
+  \item l'analyse diff\'erentielle du dernier cycle : \textbf{2 nouvelles} /
+        307 toujours pr\'esentes / 0 r\'esolue ;
+  \item deux vuln\'erabilit\'es \`a risque 10.0 ont \'et\'e index\'ees et un
+        \'ev\'enement MISP a \'et\'e cr\'e\'e ;
+  \item le champ \texttt{os} est bien pr\'esent dans les documents
+        Elasticsearch.
+\end{itemize}
+
+\subsection{R\'epartition des donn\'ees (indice du 08.15)}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l r X@{}}
+\toprule
+\textbf{H\^ote} & \textbf{Documents} & \textbf{Observations} \\
+\midrule
+\texttt{192.168.1.18} & 1{,}778 & serveur LAN (port 3306/MySQL majoritaire) \\
+\texttt{192.168.184.135} & 1{,}119 & h\^ote plateforme (OpenSSH, services Docker) \\
+\texttt{192.168.184.136} & 93 & second h\^ote du r\'eseau SPA \\
+\texttt{192.168.1.1} & 2 & routeur d\'ecouvert via le scan complet \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Ports les plus fr\'equents}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l r X@{}}
+\toprule
+\textbf{Port} & \textbf{Documents} & \textbf{Observation} \\
+\midrule
+\texttt{3306/tcp} & 2{,}400 & MySQL/MariaDB (h\^ote \texttt{.18}) \\
+\texttt{22/tcp} & 323 & SSH (serveurs) \\
+\texttt{8080/tcp} & 252 & HTTP alternatif \\
+\texttt{9200/tcp} & 15 & Elasticsearch expos\'e \\
+\texttt{7547/tcp} & 2 & TR-069 (routeur) -- nouvellement d\'ecouvert \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Agents Fleet}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l l l X@{}}
+\toprule
+\textbf{Agent} & \textbf{H\^ote} & \textbf{Politique} & \textbf{\'Etat} \\
+\midrule
+\texttt{2fbcef12-...} & \texttt{voc-fleet-server} & fleet-server-policy-fresh-001 & \textcolor{vocgreen}{online} \\
+\texttt{607d470b-...} & conteneur \'elastique & linux\_hosts & \textcolor{vocgreen}{online} \\
+\texttt{f7f2c317-...} & \texttt{tbini} (VM \texttt{192.168.184.138}) & linux\_hosts & \textcolor{vocorange}{degraded} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\clearpage
+
+% ===========================================================================
+% 12. DIFFICULTES RENCONTREES
+% ===========================================================================
+\section{Difficult\'es rencontr\'ees et solutions apport\'ees}
+
+\subsection{Serveur Fleet instable}
+
+Le serveur Fleet rencontrait des arr\^ets r\'ep\'et\'es (\emph{OOM-kill}) et
+perdait son identit\'e d'agent \`a chaque red\'emarrage. La solution a
+consist\'e \`a : limiter sa m\'emoire (\texttt{mem\_limit: 1g}), l'ex\'ecuter
+en tant que \texttt{root} et monter un volume persistant
+(\texttt{fleet\_server\_state}) afin de conserver le fichier d'\'etat entre
+deux red\'emarrages. Le serveur est d\'esormais stable et son agent
+\emph{online}.
+
+\subsection{Erreurs de chiffrement de Kibana}
+
+Au d\'emarrage, Kibana \'emettait des erreurs sur les cl\'es de chiffrement
+(\texttt{encryptedSavedObjects}, \texttt{security}, \texttt{reporting}).
+L'\'etude de l'entrypoint officiel a montr\'e qu'il mappe les variables
+d'environnement \emph{par nom}, sans d\'ecouper la casse camelCase. Les
+variables ont donc \'et\'e renomm\'ees
+(\texttt{XPACK\_ENCRYPTEDSAVEDOBJECTS\_ENCRYPTIONKEY},
+\texttt{XPACK\_SECURITY\_ENCRYPTIONKEY},
+\texttt{XPACK\_REPORTING\_ENCRYPTIONKEY}) et inject\'ees \`a la fois dans le
+fichier de configuration et dans Docker Compose, ce qui a r\'esolu le
+probl\`eme.
+
+\subsection{Agent externe sans flux de donn\'ees}
+
+Un agent enr\^ol\'e sur une VM externe (\texttt{tbini},
+\texttt{192.168.184.138}) se connectait bien au plan de contr\^ole
+(\texttt{:8220}) mais restait \emph{degraded} sans produire de donn\'ees. La
+cause identifi\'ee : la sortie de donn\'ees par d\'efaut de Fleet pointe vers
+\texttt{http://elasticsearch:9200}, un nom DNS interne \`a Docker que les
+agents externes ne peuvent pas r\'esoudre. La correction consiste \`a faire
+pointer la sortie par d\'efaut vers l'adresse r\'eseau r\'eelle
+(\texttt{http://192.168.184.135:9200}), compatible avec les agents h\'eb\'erg\'es
+hors conteneurs.
+
+\subsection{Stabilit\'e du worker}
+
+Le worker Celery \'etait victime d'OOM (\emph{SIGKILL}) en maintenant
+plusieurs cha\^ines de centaines de d\'ecouvertes avec une concurrence de 4,
+provoquant des boucles de re-livraison. La concurrence a \'et\'e abaiss\'ee
+\`a 2, les limites m\'emoire du worker et de Redis relev\'ees, et les
+t\^aches bloqu\'ees purg\'ees.
+
+\subsection{Sant\'e d'Elasticsearch}
+
+Le cluster monop\^ole \'etait \emph{yellow} avec des r\'eplicas non
+assign\'es. Un \emph{index template} (\texttt{voc-beats-zero-replicas}) a
+\'et\'e cr\'e\'e pour forcer 0 r\'eplica sur les indices des Beats ; le
+cluster est d\'esormais \emph{green}.
+
+\subsection{Scan partiel}
+
+L'ancienne liste fixe de 41 ports manquait des services expos\'es sur
+d'autres ports (ex.\ \texttt{7547}). Le scan est pass\'e \`a
+l'int\'egralit\'e des ports (\texttt{-p-}) avec d\'etection OS
+(\texttt{-O}), au d\'emarrage puis toutes les 6\,h.
+
+\subsection{Tickets dupliqu\'es}
+
+Les scans r\'ep\'et\'es g\'en\'eraient des tickets GLPI en double. La
+fonction \texttt{find\_existing\_ticket} v\'erifie d\'esormais l'existence
+d'un ticket ouvert pour le couple (\texttt{h\^ote}, \texttt{CVE}) avant toute
+cr\'eation.
+
+\clearpage
+
+% ===========================================================================
+% 13. TESTS ET VALIDATION
+% ===========================================================================
+\section{Tests et validation}
+
+\subsection{Tests unitaires}
+
+Le d\'ep\^ot contient des tests unitaires couvrant trois p\^oles :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Intelligence sur les menaces} : parsing des r\'eponses EPSS
+        et KEV, cache, recherche OSV et Exploit-DB ;
+  \item \textbf{Enrichissement des tickets} : classification OWASP,
+        correspondances MITRE ATT\&CK, g\'en\'eration des checklists ;
+  \item \textbf{Moteur de risque} : validation des entr\'ees et des scores,
+        bornes de s\'ev\'erit\'e, effets des bonus.
+\end{itemize}
+
+Ils sont ex\'ecut\'es dans les conteneurs du worker et du moteur de risque :
+
+\begin{lstlisting}[language=bash,caption={Ex\'ecution des tests}]
+docker exec voc-celery-worker  python -m pytest /app/tests -v
+docker exec voc-risk-engine    python -m pytest /app/tests -v
+\end{lstlisting}
+
+\subsection{Validation de bout en bout}
+
+La cha\^ine compl\`ete a \'et\'e valid\'ee en conditions r\'eelles :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item d\'eclenchement du scan au d\'emarrage du conteneur ;
+  \item d\'ecouverte de 8 h\^otes actifs sur le r\'eseau LAN ;
+  \item scan complet avec d\'etection OS et d\'ecouverte du port
+        \texttt{7547} ;
+  \item cr\'eation de l'\'ev\'enement MISP, indexation des documents dans
+        Elasticsearch, ouverture des tickets GLPI \texttt{\#418} et
+        \texttt{\#419} ;
+  \item v\'erification du champ \texttt{os} et du score de risque dans les
+        documents index\'es.
+\end{enumerate}
+
+\clearpage
+
+% ===========================================================================
+% 14. CONCLUSION
+% ===========================================================================
+\section{Conclusion g\'en\'erale}
+
+Le stage effectu\'e au sein de la soci\'et\'e \textbf{G\'erence Informatique},
+encadr\'e par \textbf{Mr.~MDAOUKHI Adel}, m'a permis de concevoir, d\'eployer
+et d'exploiter la \textbf{VOC Platform}, une plateforme compl\`ete de gestion
+automatis\'ee des vuln\'erabilit\'es.
+
+La plateforme r\'epond \`a la probl\'ematique pos\'ee : elle scanne
+automatiquement le r\'eseau (tous les ports, avec d\'etection des syst\`emes
+d'exploitation), corr\`ele les d\'ecouvertes avec plusieurs sources
+d'intelligence sur les menaces (NVD, MISP, EPSS, CISA KEV, OSV, Exploit-DB),
+calcule un score de risque orient\'e m\'etier, publie les r\'esultats dans des
+tableaux de bord Elastic et ouvre automatiquement des tickets de
+rem\'ediation dans GLPI. Elle est d\'esormais op\'erationnelle : cluster
+Elasticsearch \emph{green}, plus de 5\,000 documents de vuln\'erabilit\'es
+index\'es, 419 tickets de rem\'ediation cr\'e\'es, un partage de
+renseignements actif via MISP et une gestion centralis\'ee des agents via
+Fleet.
+
+Sur le plan technique, ce projet m'a permis de mettre en pratique les
+conteneurs Docker, l'architecture de messages (RabbitMQ), l'ordonnancement de
+t\^aches (Celery), la stack Elastic et la conception d'une API avec FastAPI.
+Les difficult\'es rencontr\'ees (stabilit\'e de Fleet, cl\'es de chiffrement
+de Kibana, agents externes, mont\'ee en charge du worker) ont \'et\'e
+syst\'ematiquement analys\'ees et r\'esolues, ce qui a \'et\'e tr\`es
+formateur.
+
+Enfin, ce stage m'a \'egalement permis de d\'evelopper des comp\'etences
+transversales : analyse de probl\`emes d'exploitation, documentation technique,
+travail en autonomie et communication avec l'\'equipe. La plateforme reste
+\'evolutive : elle pourra \^etre \'etendue \`a d'autres r\'eseaux, \`a des
+scans authentifi\'es plus profonds et \`a l'enr\^olement d'agents
+suppl\'ementaires pour enrichir encore la supervision s\'ecuritaire de
+l'infrastructure.
+
+% ===========================================================================
+% ANNEXES
+% ===========================================================================
+\clearpage
+\appendix
+
+\section{Annexe A : variables d'environnement principales}
+
+\begin{center}
+\small
+\begin{longtable}{@{}p{0.30\linewidth} p{0.32\linewidth} p{0.32\linewidth}@{}}
+\toprule
+\textbf{Variable} & \textbf{D\'efaut} & \textbf{R\^ole} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{BROKER\_URL} & \texttt{amqp://voc:...@rabbitmq:5672//} & Courtier Celery \\
+\texttt{RESULT\_BACKEND} & \texttt{redis://:...@redis:6379/0} & Backend Celery \\
+\texttt{DISCOVERY\_SUBNET} & \texttt{192.168.184.0/24} & Cible du scan nmap \\
+\texttt{NMAP\_SCAN\_ARGS} & \texttt{-sS -sV --version-intensity 5 -O -p- -T4} & Arguments de scan par d\'efaut \\
+\texttt{MISP\_URL} & \texttt{https://192.168.184.135:8443} & Base API MISP \\
+\texttt{GLPI\_URL} & \texttt{http://192.168.184.135:8080} & Base API GLPI \\
+\texttt{RISK\_ENGINE\_URL} & \texttt{http://risk-engine:8000} & Service de risque \\
+\texttt{LOGSTASH\_URL} & \texttt{http://logstash:5044} & Ingestion ELK \\
+\texttt{RISK\_KEV\_BOOST} & \texttt{2.0} & Bonus KEV \\
+\texttt{RISK\_EPSS\_THRESHOLD} & \texttt{0.5} & Seuil du bonus EPSS \\
+\texttt{RISK\_EPSS\_BOOST} & \texttt{1.0} & Bonus EPSS \\
+\texttt{XPACK\_SECURITY\_ENCRYPTIONKEY} & -- & Chiffrement s\'ecurit\'e Kibana \\
+\texttt{XPACK\_ENCRYPTEDSAVEDOBJECTS\_ENCRYPTIONKEY} & -- & Chiffrement des objets Kibana \\
+\texttt{XPACK\_REPORTING\_ENCRYPTIONKEY} & -- & Chiffrement des rapports \\
+\texttt{CHECKLIST\_IN\_GLPI} & \texttt{true} & Checklist dans les tickets \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Annexe B : op\'erations courantes}
+
+\begin{lstlisting}[language=bash,caption={Op\'erations courantes}]
+# Sante du cluster
+curl -u elastic:\$ELASTIC_PASSWORD http://localhost:9200/_cluster/health
+
+# Scan manuel du sous-reseau
+docker exec voc-celery-worker python -c \
+  "from tasks import nmap_network_scan; nmap_network_scan.delay('192.168.184.0/24')"
+
+# Sante du moteur de risque
+curl http://localhost:8000/health
+
+# Noter un exemple de decouverte
+curl -X POST http://localhost:8000/score -H 'Content-Type: application/json' \
+  -d '{"cvss_base": 7.5, "is_critical_asset": true, "exploit_available": true}'
+
+# Journaux du worker
+docker logs -f voc-celery-worker
+\end{lstlisting}
+
+\section{Annexe C : tests}
+
+\begin{lstlisting}[language=bash,caption={Ex\'ecution des tests}]
+docker exec voc-celery-worker  python -m pytest /app/tests -v
+docker exec voc-risk-engine    python -m pytest /app/tests -v
+\end{lstlisting}
+
+\section{Annexe D : glossaire}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Terme} & \textbf{D\'efinition} \\
+\midrule
+CVE & \emph{Common Vulnerabilities and Exposures} -- identifiant public d'une vuln\'erabilit\'e \\
+CVSS & \emph{Common Vulnerability Scoring System} -- note de gravit\'e 0--10 \\
+EPSS & \emph{Exploit Prediction Scoring System} -- probabilit\'e d'exploitation \\
+KEV & \emph{Known Exploited Vulnerabilities} -- catalogue CISA des failles exploit\'ees \\
+IOC & \emph{Indicator of Compromise} -- indicateur de compromission \\
+ITSM & \emph{IT Service Management} -- gestion des services informatiques \\
+SOC & \emph{Security Operations Center} -- centre d'op\'erations de s\'ecurit\'e \\
+TIP & \emph{Threat Intelligence Platform} -- plateforme d'intelligence sur les menaces \\
+AMQP & \emph{Advanced Message Queuing Protocol} -- protocole de messagerie \\
+OS & \emph{Operating System} -- syst\`eme d'exploitation \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\end{document}

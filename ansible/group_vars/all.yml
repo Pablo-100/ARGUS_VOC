@@ -1,0 +1,7 @@
+---
+# Variables globales VOC
+fleet_url: "https://192.168.184.135:8220"
+voc_server: "192.168.184.135"
+fim_paths: "/etc,/home,/root,/tmp"
+scan_profile: "deep"   # fast | deep | max
+es_url_internal: "http://192.168.184.135:9200"

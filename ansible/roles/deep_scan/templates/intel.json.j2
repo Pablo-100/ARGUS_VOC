@@ -1,0 +1,17 @@
+{
+  "@timestamp": "{{ ansible_date_time.iso8601 }}",
+  "host": "{{ inventory_hostname }}",
+  "ip": "{{ ansible_default_ipv4.address | default(ansible_host) }}",
+  "os": "{{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}",
+  "kernel": "{{ ansible_facts['kernel'] }}",
+  "uptime_days": {{ ((ansible_facts['uptime_seconds'] | int) / 86400) | round(1) }},
+  "scan_profile": "{{ scan_profile | default('deep') }}",
+  "packages_count": {{ pkgs.stdout_lines | length }},
+  "packages": {{ pkgs.stdout_lines[:600] | to_json }},
+  "listening_ports_raw": {{ ss_out.stdout_lines | to_json }},
+  "users": {{ users.stdout_lines | to_json }},
+  "services_enabled_count": {{ svcs.stdout_lines | length }},
+  "services_enabled": {{ svcs.stdout_lines[:60] | to_json }},
+  "recent_logins": {{ lastlogins.stdout_lines[:20] | default([]) | to_json }},
+  "top_processes": {{ procs.stdout_lines[:11] | to_json }}
+}

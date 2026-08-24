@@ -1,0 +1,6 @@
+---
+- name: ARGUS Deep Scan — intelligence authentifiée des hôtes
+  hosts: voc_linux
+  become: yes
+  roles:
+    - deep_scan

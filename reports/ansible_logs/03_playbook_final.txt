@@ -1,0 +1,48 @@
+
+PLAY [VOC — préparation des machines Linux du réseau] **************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [tbini]
+
+TASK [common_logging : Détecter si Internet est joignable] *********************
+ok: [tbini]
+
+TASK [common_logging : Copier les paquets .deb locaux (chemin absolu)] *********
+ok: [tbini]
+
+TASK [common_logging : Installer rsyslog + auditd (hors-ligne)] ****************
+ok: [tbini] => (item=libestr0_0.1.11-1_amd64.deb)
+ok: [tbini] => (item=libfastjson4_1.2304.0-1_amd64.deb)
+ok: [tbini] => (item=liblognorm5_2.0.6-4_amd64.deb)
+ok: [tbini] => (item=libauparse0_3.0.9-1_amd64.deb)
+ok: [tbini] => (item=rsyslog_8.2302.0-1+deb12u1_amd64.deb)
+ok: [tbini] => (item=auditd_3.0.9-1_amd64.deb)
+ok: [tbini] => (item=audispd-plugins_3.0.9-1_amd64.deb)
+
+TASK [common_logging : Installer rsyslog + auditd (en ligne)] ******************
+skipping: [tbini]
+
+TASK [common_logging : Services actifs et persistants] *************************
+ok: [tbini] => (item=rsyslog)
+ok: [tbini] => (item=auditd)
+
+TASK [common_logging : Vérifier /var/log/auth.log] *****************************
+ok: [tbini]
+
+TASK [common_logging : debug] **************************************************
+ok: [tbini] => {
+    "msg": "tbini : mode HORS-LIGNE, rsyslog+auditd actifs, auth.log=présent."
+}
+
+TASK [common_logging : Activer les règles FIM + pont auditd->syslog] ***********
+included: /opt/voc-platform/ansible/roles/common_logging/tasks/fim_rules.yml for tbini
+
+TASK [common_logging : Règles audit FIM persistantes] **************************
+ok: [tbini]
+
+TASK [common_logging : Activer le pont auditd -> syslog] ***********************
+ok: [tbini]
+
+PLAY RECAP *********************************************************************
+tbini                      : ok=10   changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+

@@ -1,0 +1,129 @@
+
+% ===========================================================================
+% 2. PROBLEMATIQUE ET SOLUTION
+% ===========================================================================
+\section{Probl\'ematique et solution}
+
+\subsection{Le constat (probl\`eme)}
+
+Les \'equipes en charge de la s\'ecurit\'e des syst\`emes d'information font
+face \`a plusieurs difficult\'es r\'ecurrentes :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Scans manuels et ponctuels} : les audits de vuln\'erabilit\'es
+        sont r\'ealis\'es de mani\`ere ponctuelle et artisanale, avec des
+        outils disparates et des p\'erim\`etres partiels (liste fixe de ports,
+        fr\'equence irr\'eguli\`ere).
+  \item \textbf{Absence de vision centralis\'ee} : les r\'esultats sont
+        \'eparpill\'es dans des fichiers et aucun indicateur global n'est
+        disponible pour piloter la s\'ecurit\'e de l'infrastructure.
+  \item \textbf{Pas de corr\'elation avec les menaces} : une faille ancienne
+        \`a fort impact est trait\'ee de la m\^eme mani\`ere qu'une faille
+        r\'ecemment exploit\'ee dans la nature ; aucun contexte de menace
+        (EPSS, catalogue KEV, flux d'intelligence MISP) n'est pris en compte.
+  \item \textbf{Notation de risque incoh\'erente} : la seule note CVSS ne
+        refl\`ete pas l'exposition r\'eelle de l'entreprise (actif critique,
+        exploit public, exposition r\'eseau, etc.).
+  \item \textbf{Suivi de correction manuel} : l'ouverture et le suivi des
+        tickets de rem\'ediation sont effectu\'es \`a la main, ce qui
+        g\'en\`ere des oublis et des d\'elais.
+  \item \textbf{Observabilit\'e h\'et\'erog\`ene} : les journaux, les
+        m\'etriques et la disponibilit\'e des services sont suivis sans outil
+        commun ni historique centralis\'e.
+\end{itemize}
+
+\subsection{La solution apport\'ee}
+
+La \textbf{VOC Platform} automatise l'ensemble de ce cycle de vie :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Scan automatique et complet} : d\'ecouverte du r\'eseau
+        (\texttt{nmap -sn}), scan de \textbf{tous les ports TCP} (65535 ports,
+        \texttt{-p-}), d\'etection des versions de services (\texttt{-sV}) et
+        \textbf{empreinte du syst\`eme d'exploitation} (\texttt{-O}).
+  \item \textbf{Analyse diff\'erentielle} : chaque r\'esultat est compar\'e
+        \`a l'\'etat pr\'ec\'edent (m\'emoris\'e dans Redis) pour distinguer
+        les vuln\'erabilit\'es \emph{nouvelles}, \emph{toujours pr\'esentes}
+        ou \emph{r\'esolues}.
+  \item \textbf{Enrichissement et corr\'elation} : corr\'elation avec le flux
+        CVE de la NVD, recherche d'IOC dans MISP, ajout du score EPSS, de la
+        pr\'esence dans le catalogue CISA KEV, d'Exploit-DB et d'OSV.
+  \item \textbf{Score de risque m\'etier} : un moteur de risque d\'edi\'e
+        (FastAPI) combine CVSS, criticit\'e de l'actif, activit\'e de menace,
+        exploitabilit\'e, exposition r\'eseau, EPSS et KEV pour produire une
+        note normalis\'ee entre 0 et 10.
+  \item \textbf{Visualisation centralis\'ee} : tous les r\'esultats sont
+        index\'es dans Elasticsearch et consultables dans Kibana via des
+        tableaux de bord.
+  \item \textbf{Circuit ITSM automatis\'e} : toute vuln\'erabilit\'e dont le
+        risque est sup\'erieur ou \'egal \`a 7 g\'en\`ere automatiquement un
+        ticket dans GLPI.
+  \item \textbf{Partage de renseignements} : les nouvelles vuln\'erabilit\'es
+        sont publi\'ees sous forme d'\'ev\'enements MISP.
+  \item \textbf{Observabilit\'e unifi\'ee} : les agents Elastic (Fleet et
+        Beats) collectent les journaux, les m\'etriques, les flux r\'eseau,
+        les traces d'audit et la disponibilit\'e des services.
+\end{itemize}
+
+\subsection{Objectifs du projet}
+
+Les objectifs fix\'es au d\'ebut du stage \'etaient les suivants :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item d\'eployer une plateforme de scan automatique fiable et compl\`ete ;
+  \item assurer la corr\'elation des d\'ecouvertes avec les sources de
+        menaces ;
+  \item produire un score de risque orient\'e m\'etier, reproductible et
+        explicable ;
+  \item offrir une visibilit\'e centralis\'ee (tableaux de bord) ;
+  \item automatiser l'ouverture et le suivi des tickets de rem\'ediation ;
+  \item superviser la plateforme et les agents d\'eploy\'es.
+\end{enumerate}
+
+% ===========================================================================
+% 3. ENVIRONNEMENT DE STAGE
+% ===========================================================================
+\section{Environnement de stage}
+
+\subsection{Universit\'e TEK-UP University}
+
+TEK-UP University est un \'etablissement d'enseignement sup\'erieur
+d\'elivrant des formations d'ing\'enierie dans les domaines des technologies
+de l'information et de la communication. Le pr\'esent stage s'inscrit dans le
+cadre de l'ann\'ee universitaire 2025--2026 et du programme de formation
+d'ing\'enierie.
+
+\subsection{Soci\'et\'e G\'erence Informatique}
+
+G\'erence Informatique est une soci\'et\'e sp\'ecialis\'ee dans les services
+li\'es aux syst\`emes d'information : administration de r\'eseaux et de
+serveurs, gestion des parcs informatiques et s\'ecurit\'e des syst\`emes.
+C'est dans ce contexte que le besoin d'une plateforme centralis\'ee de gestion
+des vuln\'erabilit\'es a \'et\'e identifi\'e, afin de professionnaliser la
+surveillance s\'ecuritaire de l'infrastructure.
+
+\subsection{Encadrement}
+
+Le stage a \'et\'e encadr\'e par \textbf{Mr.~MDAOUKHI Adel}, qui a assur\'e le
+suivi technique du projet, la validation des choix d'architecture et la revue
+des d\'eveloppements r\'ealis\'es.
+
+\subsection{M\'ethodologie suivie}
+
+Le travail a \'et\'e conduit selon une d\'emarche it\'erative :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Analyse des besoins} : recensement des difficult\'es, des
+        p\'erim\`etres r\'eseau et des outils d\'ej\`a pr\'esents sur
+        l'infrastructure ;
+  \item \textbf{Conception} : choix de la stack technique, d\'efinition de
+        l'architecture et du pipeline de traitement ;
+  \item \textbf{D\'eveloppement} : r\'ealisation des modules (scan,
+        enrichissement, score, indexation, tickets), des diagrammes et des
+        tests unitaires ;
+  \item \textbf{D\'eploiement et int\'egration} : mise en place des services
+        Docker, configuration des agents Elastic, r\'esolution des
+        probl\`emes d'exploitation ;
+  \item \textbf{Validation et exploitation} : v\'erification de bout en bout,
+        analyse des r\'esultats et suivi op\'erationnel.
+\end{enumerate}

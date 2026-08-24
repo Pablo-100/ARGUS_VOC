@@ -1,0 +1,147 @@
+# ==========================================
+# VOC Windows Agent - Standalone Config
+# Elastic Agent 8.11.0
+# ==========================================
+
+agent:
+  id: "voc-windows-agent"
+  name: "VOC Windows Host"
+  labels:
+    platform: voc
+    environment: production
+    os: windows
+
+# Output to Elasticsearch
+outputs:
+  default:
+    type: elasticsearch
+    hosts:
+      - "http://192.168.184.135:9200"
+    username: "elastic"
+    password: "${ELASTIC_PASSWORD}"
+
+# ==========================================
+# INTEGRATIONS
+# ==========================================
+
+inputs:
+  # --- Windows Event Logs ---
+  - type: winlog
+    id: windows-event-logs
+    name: Windows Event Logs
+    enabled: true
+    streams:
+      windows:
+        forwarder:
+          enabled: true
+        security:
+          enabled: true
+          event_id: 4624,4625,4634,4648,4672,4688,4697,4698,4700,4701,4702,4719,4720,4722,4723,4724,4725,4726,4728,4732,4738,4756,4768,4769,4771,4946,4947,4948,4949,5140,5145,1102
+        system:
+          enabled: true
+        powershell:
+          enabled: true
+        powershell-classic:
+          enabled: true
+        sysmon-operational:
+          enabled: true
+        wdns:
+          enabled: true
+        rdp-auth:
+          enabled: true
+        powershell-script-block:
+          enabled: true
+
+  # --- Windows System Metrics ---
+  - type: system/metrics
+    id: windows-system-metrics
+    name: Windows System Metrics
+    enabled: true
+    data_stream:
+      namespace: default
+    streams:
+      system.cpu:
+        enabled: true
+        period: 30s
+      system.memory:
+        enabled: true
+        period: 30s
+      system.network:
+        enabled: true
+        period: 30s
+      system.process:
+        enabled: true
+        period: 30s
+        process.include_top_n.by_cpu: 20
+        process.include_top_n.by_memory: 20
+      system.filesystem:
+        enabled: true
+        period: 30s
+      system.diskio:
+        enabled: true
+        period: 30s
+      system.uptime:
+        enabled: true
+        period: 30s
+
+  # --- Windows Service Metrics ---
+  - type: system/service
+    id: windows-services
+    name: Windows Services
+    enabled: true
+    data_stream:
+      namespace: default
+    streams:
+      system.service:
+        enabled: true
+        period: 60s
+
+  # --- Windows Perfmon Metrics ---
+  - type: windows/perfmon
+    id: windows-perfmon
+    name: Windows Performance Counters
+    enabled: true
+    data_stream:
+      namespace: default
+    streams:
+      windows.perfmon:
+        enabled: true
+        period: 30s
+        perfmon.counters:
+          - object: Processor
+            counters:
+              - name: "% Processor Time"
+            instance: "_Total"
+          - object: Memory
+            counters:
+              - name: "Available Bytes"
+              - name: "% Committed Bytes In Use"
+          - object: LogicalDisk
+            counters:
+              - name: "% Free Space"
+              - name: "Free Megabytes"
+            instance: "_Total"
+          - object: PhysicalDisk
+            counters:
+              - name: "% Disk Time"
+              - name: "Avg. Disk Queue Length"
+            instance: "_Total"
+
+  # --- Windows Firewall Logs ---
+  - type: log
+    id: windows-firewall
+    name: Windows Firewall Logs
+    enabled: true
+    paths:
+      - C:\Windows\System32\LogFiles\Firewall\pfirewall.log
+    data_stream:
+      namespace: default
+    parsers:
+      - ndjson:
+          target: ""
+    processors:
+      - add_fields:
+          target: ""
+          fields:
+            log_type: windows_firewall
+            platform: voc

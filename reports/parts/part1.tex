@@ -1,0 +1,248 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% PACKAGES
+% ---------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+
+% ---------------------------------------------------------------------------
+% GEOMETRY & PAGE
+% ---------------------------------------------------------------------------
+\geometry{margin=2.2cm,headheight=22pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\definecolor{vocblue}{RGB}{0,102,153}
+\definecolor{vocdark}{RGB}{20,40,60}
+\definecolor{voclight}{RGB}{235,242,247}
+\definecolor{vocgreen}{RGB}{0,140,90}
+\definecolor{vocred}{RGB}{180,40,40}
+\definecolor{vocorange}{RGB}{210,120,0}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=vocblue,
+  urlcolor=vocblue,
+  citecolor=vocblue,
+  pdftitle={Rapport de stage -- VOC Platform},
+  pdfauthor={TBINI Mustapha Amin}
+}
+
+% ---------------------------------------------------------------------------
+% HEADERS & FOOTERS
+% ---------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{vocblue}{\textbf{VOC Platform -- Vulnerability Operations Center}}}
+\fancyhead[R]{\small\textcolor{vocdark}{Rapport de stage}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{vocblue}\leaders\hrule height \headrulewidth\hfill}}
+
+% ---------------------------------------------------------------------------
+% SECTION FORMATTING
+% ---------------------------------------------------------------------------
+\titleformat{\section}
+  {\Large\bfseries\color{vocdark}}
+  {\thesection}{0.8em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{vocblue}}
+  {\thesubsection}{0.7em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{vocdark}}
+  {\thesubsubsection}{0.6em}{}
+
+\captionsetup{font=small,labelfont={bf,color=vocblue}}
+
+% ---------------------------------------------------------------------------
+% CODE STYLE
+% ---------------------------------------------------------------------------
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{vocblue}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{vocgreen},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  rulecolor=\color{voclight},
+  breaklines=true,
+  backgroundcolor=\color{white},
+  tabsize=2
+}
+
+% ---------------------------------------------------------------------------
+% COMMANDS
+% ---------------------------------------------------------------------------
+\newcommand{\tool}[1]{\textbf{\texttt{#1}}}
+\newcommand{\techicon}[1]{\raisebox{-0.12em}{\includegraphics[height=1.0em]{icons/#1}}}
+\newcommand{\techblock}[4]{%
+  \par\medskip
+  \noindent
+  \begin{minipage}[t]{0.065\linewidth}\raggedleft\includegraphics[height=1.7em]{icons/#1}\end{minipage}%
+  \hspace{0.45em}%
+  \begin{minipage}[t]{0.88\linewidth}
+    {\large\bfseries\color{vocblue}#2}\\[2pt]
+    {\small\textbf{Description :} #3}\\
+    {\small\textbf{Pourquoi ce choix :} #4}
+  \end{minipage}
+  \par
+}
+
+\begin{document}
+
+% ===========================================================================
+% PAGE DE GARDE
+% ===========================================================================
+\begin{titlepage}
+\centering
+
+{\LARGE\bfseries\color{vocdark} TEK-UP University}\\[0.25cm]
+{\large \'Ecole d'Ing\'enierie \& Universit\'e priv\'ee}\\[0.2cm]
+{\color{vocblue}\rule{\linewidth}{1.2pt}}\\[1.2cm]
+
+{\Large\bfseries Soci\'et\'e : G\'erence Informatique}\\[0.5cm]
+
+\vfill
+
+{\large\color{vocdark} Rapport de stage}\\[0.3cm]
+{\Huge\bfseries\color{vocdark} VOC Platform}\\[0.5cm]
+{\LARGE\color{vocblue} Vulnerability Operations Center}\\[0.6cm]
+{\large Plateforme automatis\'ee de gestion des vuln\'erabilit\'es}
+
+\vfill
+
+\begin{minipage}{0.8\linewidth}
+\centering\small
+\begin{tabular}{rl}
+\toprule
+\textbf{R\'ealis\'e par} & TBINI Mustapha Amin \\[4pt]
+\textbf{Encadr\'ement} & Mr. MDAOUKHI Adel \\[4pt]
+\textbf{Soci\'et\'e d'accueil} & G\'erence Informatique \\[4pt]
+\textbf{Universit\'e} & TEK-UP University \\[4pt]
+\textbf{Ann\'ee universitaire} & 2025--2026 \\[4pt]
+\textbf{Lieu de d\'eploiement} & \texttt{192.168.184.135} (VMware) \\[4pt]
+\textbf{P\'eriode} & Stage universitaire -- ann\'ee 2025--2026 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+
+\vfill
+{\small\textcolor{gray} \today}
+\end{titlepage}
+
+% ===========================================================================
+% REMERCIEMENTS
+% ===========================================================================
+\section*{Remerciements}
+\addcontentsline{toc}{section}{Remerciements}
+
+Au terme de ce stage, je tiens \`a exprimer ma gratitude \`a toutes les personnes
+qui ont contribu\'e \`a la r\'ealisation de ce projet.
+
+Je remercie tout d'abord mon encadrant, \textbf{Mr.~MDAOUKHI Adel}, pour son
+accompagnement, ses conseils techniques et la confiance qu'il m'a accord\'ee tout
+au long de ce travail.
+
+Je remercie \'egalement la soci\'et\'e \textbf{G\'erence Informatique} pour son
+accueil, ainsi que l'ensemble de ses \'equipes pour leur disponibilit\'e et leur
+entraide.
+
+Enfin, je remercie l'universit\'e \textbf{TEK-UP University} et son corps
+enseignant pour la qualit\'e de la formation dispens\'ee durant l'ann\'ee
+universitaire 2025--2026.
+
+\clearpage
+
+% ===========================================================================
+% TABLE DES MATIERES
+% ===========================================================================
+\tableofcontents
+\clearpage
+
+% ===========================================================================
+% 1. INTRODUCTION GENERALE
+% ===========================================================================
+\section{Introduction g\'en\'erale}
+
+\subsection{Contexte}
+
+La s\'ecurit\'e des syst\`emes d'information est devenue un enjeu
+strat\'egique pour toutes les organisations. Chaque ann\'ee, des dizaines de
+milliers de vuln\'erabilit\'es sont publi\'ees dans les bases de r\'ef\'erence
+(CVE), et un nombre croissant d'entre elles sont activement exploit\'ees avant
+m\^eme la disponibilit\'e d'un correctif. Le catalogue CISA KEV recense les
+vuln\'erabilit\'es d\'ej\`a exploit\'ees dans la nature, et les outils
+d'analyse estiment que seule une fraction des CVE constitue un risque r\'eel
+pour une organisation donn\'ee.
+
+Face \`a ce constat, la simple collecte de vuln\'erabilit\'es ne suffit plus.
+Les \'equipes de s\'ecurit\'e doivent \^etre capables de :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{prioriser} efficacement les failles \`a traiter, en fonction
+        du risque r\'eel pour l'activit\'e ;
+  \item \textbf{corr\'eler} les d\'ecouvertes avec le contexte des menaces
+        (exploits publics, exploitation active, indicateurs de compromission) ;
+  \item \textbf{orchestrer} le traitement : ouverture de tickets, suivi de la
+        rem\'ediation, mesure de l'am\'elioration.
+\end{itemize}
+
+\subsection{Pr\'esentation du projet}
+
+Le projet d\'evelopp\'e durant ce stage, la \textbf{VOC Platform}
+(\emph{Vulnerability Operations Center}), est une plateforme automatis\'ee de
+gestion des vuln\'erabilit\'es qui :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item scanne p\'eriodiquement le r\'eseau interne (\textbf{tous les ports}
+        TCP, avec d\'etection des services et des syst\`emes d'exploitation) ;
+  \item enrichit chaque d\'ecouverte avec de l'\textbf{intelligence sur les
+        menaces} (NVD, MISP, EPSS, CISA KEV, OSV, Exploit-DB) ;
+  \item calcule un \textbf{score de risque} orient\'e m\'etier entre 0 et 10 ;
+  \item publie les r\'esultats dans une \textbf{stack de visualisation}
+        (Elasticsearch + Kibana) ;
+  \item ouvre automatiquement des \textbf{tickets de rem\'ediation} dans un
+        outil ITSM (GLPI) ;
+  \item partage les nouvelles d\'ecouvertes sous forme d'\textbf{\'ev\'enements
+        MISP} ;
+  \item supervise l'ensemble via une \textbf{observabilit\'e unifi\'ee}
+        (Fleet + Beats).
+\end{itemize}
+
+\subsection{Organisation du rapport}
+
+Ce rapport est organis\'e comme suit :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item la \textbf{probl\'ematique} \`a laquelle la plateforme apporte une
+        solution, puis la pr\'esentation de l'\textbf{environnement de stage} ;
+  \item la pr\'esentation des \textbf{outils et technologies} employ\'es et
+        les raisons de leur choix ;
+  \item l'\textbf{architecture} de la plateforme et sa \textbf{mod\'elisation
+        UML} (cas d'utilisation, classes, s\'equence, \'etats, d\'eploiement) ;
+  \item le \textbf{pipeline} de traitement des vuln\'erabilit\'es et le
+        \textbf{moteur de calcul du risque} ;
+  \item le \textbf{mod\`ele de donn\'ees}, la \textbf{s\'ecurit\'e},
+        l'\textbf{\'etat op\'erationnel}, les \textbf{difficult\'es}
+        rencontr\'ees et les \textbf{tests} ;
+  \item enfin, la \textbf{conclusion} g\'en\'erale du stage.
+\end{enumerate}

@@ -1,0 +1,28 @@
+flowchart LR
+    A1(["Administrateur sécurité"])
+    A2(["Équipe IT / remédiation"])
+    A3(["Analyste SOC"])
+
+    UC1("Scanner le réseau")
+    UC2("Identifier les vulnérabilités")
+    UC3("Enrichir avec l'intelligence sur les menaces")
+    UC4("Calculer le score de risque")
+    UC5("Visualiser les tableaux de bord Kibana")
+    UC6("Créer un ticket de remédiation")
+    UC7("Publier un événement MISP")
+    UC8("Superviser les agents (Fleet)")
+    UC9("Suivre la résolution des failles")
+
+    A1 --> UC1
+    A1 --> UC4
+    A1 --> UC8
+    A2 --> UC6
+    A2 --> UC9
+    A3 --> UC3
+    A3 --> UC5
+    UC1 -.-> UC2
+    UC2 -.-> UC3
+    UC3 -.-> UC4
+    UC4 -.-> UC5
+    UC4 -.-> UC6
+    UC4 -.-> UC7

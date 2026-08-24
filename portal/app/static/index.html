@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARGUS · Vulnerability Operations Center</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-view" class="login-wrap">
+  <div class="login-bg">
+    <div class="login-grid"></div>
+  </div>
+  <form id="login-form" class="login-card" autocomplete="off">
+    <div class="brand-lg">
+      <img src="/static/img/argus.svg" width="88" height="88" alt="ARGUS"
+           style="filter:drop-shadow(0 0 16px rgba(122,162,247,.5))">
+    </div>
+    <h1 style="letter-spacing:8px;font-weight:800;background:linear-gradient(90deg,#7aa2f7,#bb9af7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px">ARGUS</h1>
+    <div style="color:var(--muted);font-size:12.5px;letter-spacing:.6px;margin-bottom:14px">One console. Every signal.</div>
+    <p class="sub">Vulnerability Operations Center — single entry point</p>
+    <label>Username
+      <input id="login-user" placeholder="your username" autocomplete="username" required>
+    </label>
+    <label>Password
+      <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" required>
+    </label>
+    <div id="login-err" class="err"></div>
+    <button type="submit" class="btn-primary btn-block">Sign in</button>
+    <p class="foot">SOC · IT · Threat Intelligence</p>
+  </form>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app-view" class="hidden">
+  <aside class="sidebar">
+    <div class="brand"><img src="/static/img/argus.svg" width="26" height="26" style="vertical-align:-6px"> <b style="letter-spacing:2px">ARGUS</b><span>VOC Platform</span></div>
+    <nav id="tabs">
+      <button data-tab="dashboard" class="active">
+        <span class="ico">◫</span> Dashboard
+      </button>
+      <button data-tab="vulns">
+        <span class="ico">▲</span> Vulnerabilities
+      </button>
+      <button data-tab="mytickets">
+        <span class="ico">▤</span> My Tickets
+      </button>
+      <button data-tab="threatintel" data-cap="misp.view" class="cap-btn hidden">
+        <span class="ico">🧬</span> Threat Intel
+      </button>
+      <button data-tab="hostintel" data-cap="infra.view" class="cap-btn hidden">
+        Host Intel
+      </button>
+      <button data-tab="endpoints" data-cap="infra.view" class="cap-btn hidden">
+        Endpoints
+      </button>
+      <button data-tab="infra" data-cap="infra.view" class="cap-btn hidden">
+        <span class="ico">🐇</span> Infrastructure
+      </button>
+      <button data-tab="services" data-cap="services.view" class="cap-btn hidden">
+        <span class="ico">◆</span> Services
+      </button>
+      <button data-tab="attack">
+        <span class="ico">⚔</span> MITRE ATT&CK
+      </button>
+      <button data-tab="account">
+        <span class="ico">◎</span> My Account
+      </button>
+      <button data-tab="dashboards" data-cap="dashboard.view" class="cap-btn hidden">
+        Dashboards
+      </button>
+      <button data-tab="roles" data-cap="roles.manage" class="cap-btn hidden">
+        Rôles
+      </button>
+      <button data-tab="assets" data-cap="assets.view" class="cap-btn hidden">
+        Assets
+      </button>
+      <button data-tab="audit" data-cap="audit.view" class="cap-btn hidden">
+        Audit
+      </button>
+      <button data-tab="tickets" data-cap="tickets.view_all" class="cap-btn hidden">
+        <span class="ico">☷</span> All Tickets
+      </button>
+      <button data-tab="users" data-cap="users.manage" class="cap-btn hidden">
+        <span class="ico">◎</span> Users
+      </button>
+    </nav>
+    <div class="side-foot">
+      <div class="user-card">
+        <div class="avatar" id="avatar">?</div>
+        <div>
+          <div id="whoami" class="name"></div>
+          <div id="role-tag" class="role"></div>
+        </div>
+        <button id="logout" title="Sign out">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="status-dots" id="status-dots" title="Platform services"></div>
+      <div class="right">
+        <div class="services">
+          <button id="services-btn" class="btn-ghost">Services ▾</button>
+          <div id="services-menu" class="menu hidden"></div>
+        </div>
+        <span class="clock" id="clock"></span>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- DASHBOARD -->
+      <section id="tab-dashboard" class="tab">
+        <div class="kpis" id="kpis"></div>
+        <div class="grid-row">
+          <div class="card span-2">
+            <div class="card-head">
+              <h3>Vulnerability trend · 14 days</h3>
+              <span class="legend"><i class="lg crit"></i>critical <i class="lg high"></i>high <i class="lg med"></i>medium</span>
+            </div>
+            <div id="trend-chart" class="chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Severity mix</h3></div>
+            <div id="sev-chart" class="chart"></div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card">
+            <div class="card-head"><h3>Detection confidence</h3></div>
+            <div id="conf-chart" class="chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>SLA posture</h3></div>
+            <div id="sla-panel" class="list"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Live activity</h3><span class="m" style="color:var(--muted);font-size:11px">audit stream</span></div>
+            <div id="activity" class="list"></div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card">
+            <div class="card-head"><h3>Critical assets · blast radius</h3></div>
+            <div id="blast" class="list"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Top CVEs by risk</h3></div>
+            <div id="topcves" class="list"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>7-day exploitation forecast</h3></div>
+            <div id="prediction" class="list"></div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card span-3">
+            <div class="card-head"><h3>Recent tickets</h3></div>
+            <div id="recent"></div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card span-3">
+            <div class="card-head"><h3>ATT&CK techniques in open tickets</h3></div>
+            <div id="attack-mix"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VULNERABILITIES -->
+      <section id="tab-vulns" class="tab hidden">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head">
+            <h3>Vulnerability explorer</h3>
+            <span id="vulns-count" class="m" style="color:var(--muted);font-size:12px"></span>
+          </div>
+          <div class="filterbar">
+            <input id="vulns-q" class="search" placeholder="Search CVE, host, product…">
+            <div class="pills" id="vulns-sev">
+              <button class="pill active" data-sev="">All</button>
+              <button class="pill pill-crit" data-sev="Critical">Critical</button>
+              <button class="pill pill-high" data-sev="High">High</button>
+              <button class="pill pill-med" data-sev="Medium">Medium</button>
+              <button class="pill pill-low" data-sev="Low">Low</button>
+            </div>
+          </div>
+          <div id="vulns-body"></div>
+          <div class="toolbar" style="justify-content:flex-end;margin-top:10px">
+            <button class="btn-ghost" id="vulns-prev">← Prev</button>
+            <span class="m" id="vulns-page" style="color:var(--muted);font-size:12px"></span>
+            <button class="btn-ghost" id="vulns-next">Next →</button>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card span-2">
+            <div class="card-head"><h3>Attack graph · blast radius</h3></div>
+            <div id="vulns-graph"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Exploitation forecast history</h3></div>
+            <div id="vulns-predictions"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- THREAT INTEL -->
+      <section id="tab-threatintel" class="tab hidden">
+        <div class="card">
+          <div class="card-head">
+            <h3>MISP threat intelligence</h3>
+            <div class="toolbar">
+              <button class="btn-primary" id="btn-misp-new">+ New event</button>
+            </div>
+          </div>
+          <div class="filterbar">
+            <input id="misp-q" class="search" placeholder="Search by CVE, host, tag…">
+            <button class="btn-ghost" id="misp-search-btn">Search</button>
+          </div>
+          <div id="misp-body"></div>
+        </div>
+      </section>
+
+      <!-- INFRASTRUCTURE -->
+      <section id="tab-infra" class="tab hidden">
+        <div class="grid-row">
+          <div class="card span-2">
+            <div class="card-head"><h3>RabbitMQ queues</h3></div>
+            <div id="infra-queues"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Elasticsearch cluster</h3></div>
+            <div id="infra-es-health"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-head"><h3>Elasticsearch indices</h3></div>
+          <div id="infra-indices"></div>
+        </div>
+      </section>
+
+      <!-- MY TICKETS -->
+      <section id="tab-mytickets" class="tab hidden">
+        <div class="card">
+          <div class="card-head">
+            <h3>My tickets</h3>
+            <div class="toolbar" id="my-toolbar"></div>
+          </div>
+          <div id="mytickets-body"></div>
+        </div>
+      </section>
+
+      <!-- ALL TICKETS -->
+      <section id="tab-tickets" class="tab hidden">
+        <div class="card">
+          <div class="card-head">
+            <h3>All tickets</h3>
+            <div class="toolbar">
+              <button id="btn-sync" class="btn-ghost">↻ Import auto tickets</button>
+              <button id="btn-new" class="btn-primary">+ New ticket</button>
+            </div>
+          </div>
+          <div class="filterbar" id="ticket-filters">
+            <input id="filter-q" class="search" placeholder="Search CVE, host, title…">
+            <div class="pills" id="filter-sev">
+              <button class="pill active" data-sev="all">All</button>
+              <button class="pill pill-crit" data-sev="critical">Critical</button>
+              <button class="pill pill-high" data-sev="high">High</button>
+              <button class="pill pill-med" data-sev="medium">Medium</button>
+              <button class="pill pill-low" data-sev="low">Low</button>
+            </div>
+            <div class="pills" id="filter-status">
+              <button class="pill active" data-st="all">All</button>
+              <button class="pill" data-st="open">Open</button>
+              <button class="pill" data-st="assigned">Assigned</button>
+              <button class="pill" data-st="in_progress">In progress</button>
+              <button class="pill" data-st="solved">Solved</button>
+            </div>
+            <span id="filterbar-count" class="m" style="color:var(--muted);font-size:12px"></span>
+          </div>
+          <div id="tickets-body"></div>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section id="tab-assets" class="tab hidden">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head">
+            <h3>Asset inventory</h3>
+            <span id="assets-count" class="m" style="color:var(--muted);font-size:12px"></span>
+          </div>
+          <div class="filterbar">
+            <input id="assets-q" class="search" placeholder="Search hostname, IP, OS, owner…">
+          </div>
+          <div id="assets-body"></div>
+          <div class="toolbar" style="justify-content:flex-end;margin-top:10px">
+            <button class="btn-ghost" id="assets-prev">← Prev</button>
+            <span class="m" id="assets-page" style="color:var(--muted);font-size:12px"></span>
+            <button class="btn-ghost" id="assets-next">Next →</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-audit" class="tab hidden">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head"><h3>Security audit trail</h3></div>
+          <div id="audit-body"></div>
+        </div>
+      </section>
+
+      <section id="tab-users" class="tab hidden">
+        <div class="grid-row">
+          <div class="card span-2">
+            <div class="card-head"><h3>Team & resolution rates</h3></div>
+            <div id="users-body"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Invite / create user</h3></div>
+            <form id="user-form" class="form">
+              <label>Username <input id="u-name" required placeholder="jdoe"></label>
+              <label>Full name <input id="u-full" placeholder="Jane Doe"></label>
+              <label>Password <input id="u-pass" type="password" required minlength="6" placeholder="min 6 chars"></label>
+              <label>Role
+                <select id="u-role"><option value="soc1">SOC L1 · Junior</option></select><!-- populated dynamically from /api/roles -->
+              </label>
+              <button type="submit" class="btn-primary">Create user</button>
+            </form>
+            <div id="provision-results"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVICES -->
+      <section id="tab-services" class="tab hidden">
+        <div id="hub-body"></div>
+      </section>
+
+      <!-- NATIVE DASHBOARDS -->
+      <section id="tab-dashboards" class="tab hidden">
+        <div class="grid-row">
+          <div class="card">
+            <div class="card-head"><h3>Severity trend (native)</h3></div>
+            <div id="nd-trend" class="chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Confirmed vs potential</h3></div>
+            <div id="nd-confidence" class="chart"></div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card">
+            <div class="card-head"><h3>Latest CONFIRMED findings</h3></div>
+            <div id="nd-confirmed" class="list"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Kibana dashboards (full)</h3></div>
+            <div id="nd-kibana"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROLES MATRIX -->
+      <section id="tab-roles" class="tab hidden">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head">
+            <h3>Rôles & permissions</h3>
+            <button class="btn-primary small" id="btn-new-role">+ Nouveau rôle</button>
+          </div>
+          <div id="roles-body"></div>
+        </div>
+      </section>
+
+      <!-- HOST INTEL (Deep Scan Ansible) -->
+      <section id="tab-hostintel" class="tab hidden">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head">
+            <h3>Host Intelligence — Deep Scan authentifié</h3>
+            <span class="m" style="color:var(--muted);font-size:11px">paquets · comptes · ports · services vus de l'INTÉRIEUR via SSH</span>
+          </div>
+          <div id="hi-list"></div>
+        </div>
+        <div id="hi-detail"></div>
+      </section>
+
+      <!-- ENDPOINT ACTIVITY -->
+      <section id="tab-endpoints" class="tab hidden">
+        <div class="kpis" id="ep-kpis"></div>
+        <div class="grid-row">
+          <div class="card">
+            <div class="card-head"><h3>Fleet agents</h3><span class="m" id="fleet-count" style="color:var(--muted);font-size:11.5px"></span></div>
+            <div id="ep-fleet" class="list"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Réseau live — machines qui parlent au serveur</h3><span class="m" style="color:var(--muted);font-size:11.5px">30 dernières min</span></div>
+            <div id="ep-network" class="list"></div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card span-3">
+            <div class="card-head">
+              <h3>Activity — files & logins, every machine</h3>
+              <select id="act-type" class="mini-sel">
+                <option value="">all types</option>
+                <option value="file">files</option>
+                <option value="login">logins</option>
+              </select>
+              <select id="act-host" class="mini-sel"><option value="">all hosts</option><option value="voc-host">voc-host (serveur)</option><option value="tbini">tbini</option></select>
+              <select id="act-result" class="mini-sel">
+                <option value="">all results</option>
+                <option value="success">success</option>
+                <option value="failed">failed</option>
+              </select>
+              <select id="act-minutes" class="mini-sel">
+                <option value="60">1h</option>
+                <option value="360">6h</option>
+                <option value="1440" selected>24h</option>
+                <option value="10080">7d</option>
+              </select>
+              <label class="row mini-sel" style="gap:6px;padding:6px 10px;cursor:pointer"><input type="checkbox" id="act-noise" checked style="width:auto"> masquer bruit système</label>
+              <input id="act-q" class="search" placeholder="Chercher un fichier, user, IP… (ex: rapport.txt)" style="max-width:280px">
+              <button class="small primary" id="btn-fim-canary">Test canary</button>
+            </div>
+            <div id="ep-files"></div>
+            <div class="toolbar" style="justify-content:flex-end;margin-top:10px">
+              <button class="btn-ghost" id="ep-prev">← Prev</button>
+              <span class="m" id="ep-page" style="color:var(--muted);font-size:12px"></span>
+              <button class="btn-ghost" id="ep-next">Next →</button>
+            </div>
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="card span-3">
+            <div class="card-head"><h3>Process activity (serveur)</h3></div>
+            <div id="ep-processes"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MITRE ATT&CK -->
+      <section id="tab-attack" class="tab hidden">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-head">
+            <h3>MITRE ATT&CK — techniques observed in open tickets</h3>
+            <span class="legend" id="attack-legend"></span>
+          </div>
+          <div id="attack-body"></div>
+        </div>
+      </section>
+
+      <!-- MY ACCOUNT -->
+      <section id="tab-account" class="tab hidden">
+        <div class="grid-row">
+          <div class="card span-2">
+            <div class="card-head"><h3>Profile</h3></div>
+            <div id="account-profile"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Privileges</h3></div>
+            <div id="account-privs"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-head">
+            <h3>Single sign-on — your platform access</h3>
+            <span class="legend">auto = opens already signed in &nbsp;·&nbsp; same password = one login for every tool</span>
+          </div>
+          <div id="account-access"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ===================== TICKET MODAL ===================== -->
+<div id="modal" class="modal hidden">
+  <div class="modal-back" data-close></div>
+  <div class="modal-card" id="modal-card"></div>
+</div>
+
+<!-- ===================== TOASTS ===================== -->
+<div id="toasts" class="toasts"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

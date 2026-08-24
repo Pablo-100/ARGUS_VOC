@@ -1,0 +1,15 @@
+stateDiagram-v2
+    [*] --> Decouverte
+    Decouverte --> Nouvelle : absente de l'état précédent
+    Decouverte --> EncorePresente : déjà connue
+    Decouverte --> Resolue : port/CVE disparu
+
+    Nouvelle --> Enrichie : enrich + enhance
+    Nouvelle --> EvenementMISP : publication MISP
+    Enrichie --> Notee : score (moteur de risque)
+    Notee --> Indexee : index_to_elk
+    Notee --> Ticket : risque >= 7
+    Ticket --> Resolue : remédiation confirmée
+    EncorePresente --> Enrichie : enrich + enhance
+    Indexee --> [*]
+    Resolue --> [*]

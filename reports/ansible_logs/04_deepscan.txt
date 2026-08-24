@@ -1,0 +1,39 @@
+
+PLAY [ARGUS Deep Scan — intelligence authentifiée des hôtes] *******************
+
+TASK [Gathering Facts] *********************************************************
+ok: [tbini]
+
+TASK [deep_scan : Profondeur de collecte] **************************************
+ok: [tbini]
+
+TASK [deep_scan : Paquets installés (nom + version)] ***************************
+ok: [tbini]
+
+TASK [deep_scan : Ports en écoute] *********************************************
+ok: [tbini]
+
+TASK [deep_scan : Comptes utilisateurs humains (uid>=1000)] ********************
+ok: [tbini]
+
+TASK [deep_scan : Services activés] ********************************************
+ok: [tbini]
+
+TASK [deep_scan : Dernières connexions] ****************************************
+ok: [tbini]
+
+TASK [deep_scan : Processus top mémoire] ***************************************
+ok: [tbini]
+
+TASK [deep_scan : Assembler le document d'intelligence (template JSON natif)] ***
+ok: [tbini]
+
+TASK [deep_scan : Déposer le document sur l'hôte] ******************************
+changed: [tbini]
+
+TASK [deep_scan : Envoyer vers Elasticsearch via curl] *************************
+fatal: [tbini]: FAILED! => {"changed": false, "cmd": "curl -s -u 'elastic:2gBPbQXf23Z6VrcitfLcNMNAX1Du' -X POST 'http://192.168.184.135:9200/agent-intel-host/_doc' -H 'Content-Type: application/json' --data-binary @/tmp/voc-intel.json\n", "delta": "0:00:00.084475", "end": "2026-08-24 07:31:35.916274", "failed_when_result": true, "msg": "", "rc": 0, "start": "2026-08-24 07:31:35.831799", "stderr": "", "stderr_lines": [], "stdout": "{\"error\":{\"root_cause\":[{\"type\":\"parsing_exception\",\"reason\":\"Failed to parse object: expecting token of type [VALUE_NUMBER] but found [VALUE_STRING]\",\"line\":1,\"col\":209}],\"type\":\"document_parsing_exception\",\"reason\":\"[1:209] failed to parse: Failed to parse object: expecting token of type [VALUE_NUMBER] but found [VALUE_STRING]\",\"caused_by\":{\"type\":\"parsing_exception\",\"reason\":\"Failed to parse object: expecting token of type [VALUE_NUMBER] but found [VALUE_STRING]\",\"line\":1,\"col\":209}},\"status\":400}", "stdout_lines": ["{\"error\":{\"root_cause\":[{\"type\":\"parsing_exception\",\"reason\":\"Failed to parse object: expecting token of type [VALUE_NUMBER] but found [VALUE_STRING]\",\"line\":1,\"col\":209}],\"type\":\"document_parsing_exception\",\"reason\":\"[1:209] failed to parse: Failed to parse object: expecting token of type [VALUE_NUMBER] but found [VALUE_STRING]\",\"caused_by\":{\"type\":\"parsing_exception\",\"reason\":\"Failed to parse object: expecting token of type [VALUE_NUMBER] but found [VALUE_STRING]\",\"line\":1,\"col\":209}},\"status\":400}"]}
+
+PLAY RECAP *********************************************************************
+tbini                      : ok=10   changed=1    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+

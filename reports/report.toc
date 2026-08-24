@@ -1,0 +1,82 @@
+\babel@toc {french}{}\relax 
+\contentsline {section}{Remerciements}{1}{Doc-Start}%
+\contentsline {section}{\numberline {1}Introduction g\'en\'erale}{5}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Contexte}{5}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Pr\'esentation du projet}{5}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Organisation du rapport}{5}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Probl\'ematique et solution}{5}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Le constat (probl\`eme)}{6}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}La solution apport\'ee}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Objectifs du projet}{6}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Environnement de stage}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Universit\'e TEK-UP University}{7}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Soci\'et\'e G\'erence Informatique}{7}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Encadrement}{7}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}M\'ethodologie suivie}{7}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Outils et technologies}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Conteneurisation et d\'eploiement}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}D\'eveloppement}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Ordonnancement et files de t\^aches}{8}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Analyse de vuln\'erabilit\'es}{9}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Intelligence sur les menaces}{9}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Stockage et visualisation}{10}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Gestion des agents}{10}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}Gestion des services informatiques}{11}{subsection.4.8}%
+\contentsline {subsection}{\numberline {4.9}Infrastructure et versionnement}{11}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}Tableau r\'ecapitulatif}{11}{subsection.4.10}%
+\contentsline {section}{\numberline {5}Architecture g\'en\'erale}{12}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Vue d'ensemble}{12}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Gestion centralis\'ee des agents (Fleet)}{12}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Services et ports}{12}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Topologie r\'eseau}{13}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Structure du d\'ep\^ot}{13}{subsection.5.5}%
+\contentsline {section}{\numberline {6}Mod\'elisation UML}{15}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Diagramme de cas d'utilisation}{15}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Diagramme de classes}{15}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Diagramme de s\'equence}{15}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Diagramme d'\'etats}{15}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Diagramme de d\'eploiement}{16}{subsection.6.5}%
+\contentsline {section}{\numberline {7}Pipeline de gestion des vuln\'erabilit\'es}{18}{section.7}%
+\contentsline {subsection}{\numberline {7.1}D\'eroulement g\'en\'eral}{18}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Description des \'etapes}{18}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Analyse diff\'erentielle}{18}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Synchronisation GLPI $\rightarrow $ ELK}{20}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Ordonnancement et files}{20}{subsection.7.5}%
+\contentsline {section}{\numberline {8}Moteur de calcul du risque}{21}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Entr\'ees}{21}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Algorithme de notation}{21}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Sch\'ema de d\'ecision}{21}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}Exemples de calcul}{21}{subsection.8.4}%
+\contentsline {subsection}{\numberline {8.5}R\`egles de cr\'eation des tickets GLPI}{23}{subsection.8.5}%
+\contentsline {section}{\numberline {9}Mod\`ele de donn\'ees et stockage}{24}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Indices Elasticsearch}{24}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Vues de donn\'ees Kibana}{24}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Exemple de document de vuln\'erabilit\'e}{24}{subsection.9.3}%
+\contentsline {section}{\numberline {10}S\'ecurit\'e de la plateforme}{26}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Chiffrement de Kibana}{26}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Authentification}{26}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Isolation des conteneurs}{26}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Supervision des agents}{26}{subsection.10.4}%
+\contentsline {subsection}{\numberline {10.5}Transport des donn\'ees}{26}{subsection.10.5}%
+\contentsline {section}{\numberline {11}\'Etat op\'erationnel du d\'eploiement}{27}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Sant\'e de la plateforme}{27}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Preuves de l'extension du scan}{27}{subsection.11.2}%
+\contentsline {subsection}{\numberline {11.3}R\'epartition des donn\'ees (indice du 08.15)}{27}{subsection.11.3}%
+\contentsline {subsection}{\numberline {11.4}Ports les plus fr\'equents}{27}{subsection.11.4}%
+\contentsline {subsection}{\numberline {11.5}Agents Fleet}{28}{subsection.11.5}%
+\contentsline {section}{\numberline {12}Difficult\'es rencontr\'ees et solutions apport\'ees}{29}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Serveur Fleet instable}{29}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Erreurs de chiffrement de Kibana}{29}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Agent externe sans flux de donn\'ees}{29}{subsection.12.3}%
+\contentsline {subsection}{\numberline {12.4}Stabilit\'e du worker}{29}{subsection.12.4}%
+\contentsline {subsection}{\numberline {12.5}Sant\'e d'Elasticsearch}{29}{subsection.12.5}%
+\contentsline {subsection}{\numberline {12.6}Scan partiel}{29}{subsection.12.6}%
+\contentsline {subsection}{\numberline {12.7}Tickets dupliqu\'es}{29}{subsection.12.7}%
+\contentsline {section}{\numberline {13}Tests et validation}{30}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Tests unitaires}{30}{subsection.13.1}%
+\contentsline {subsection}{\numberline {13.2}Validation de bout en bout}{30}{subsection.13.2}%
+\contentsline {section}{\numberline {14}Conclusion g\'en\'erale}{31}{section.14}%
+\contentsline {section}{\numberline {A}Annexe A : variables d'environnement principales}{32}{appendix.A}%
+\contentsline {section}{\numberline {B}Annexe B : op\'erations courantes}{32}{appendix.B}%
+\contentsline {section}{\numberline {C}Annexe C : tests}{32}{appendix.C}%
+\contentsline {section}{\numberline {D}Annexe D : glossaire}{33}{appendix.D}%

@@ -1,0 +1,240 @@
+
+% ===========================================================================
+% 12. DIFFICULTES RENCONTREES
+% ===========================================================================
+\section{Difficult\'es rencontr\'ees et solutions apport\'ees}
+
+\subsection{Serveur Fleet instable}
+
+Le serveur Fleet rencontrait des arr\^ets r\'ep\'et\'es (\emph{OOM-kill}) et
+perdait son identit\'e d'agent \`a chaque red\'emarrage. La solution a
+consist\'e \`a : limiter sa m\'emoire (\texttt{mem\_limit: 1g}), l'ex\'ecuter
+en tant que \texttt{root} et monter un volume persistant
+(\texttt{fleet\_server\_state}) afin de conserver le fichier d'\'etat entre
+deux red\'emarrages. Le serveur est d\'esormais stable et son agent
+\emph{online}.
+
+\subsection{Erreurs de chiffrement de Kibana}
+
+Au d\'emarrage, Kibana \'emettait des erreurs sur les cl\'es de chiffrement
+(\texttt{encryptedSavedObjects}, \texttt{security}, \texttt{reporting}).
+L'\'etude de l'entrypoint officiel a montr\'e qu'il mappe les variables
+d'environnement \emph{par nom}, sans d\'ecouper la casse camelCase. Les
+variables ont donc \'et\'e renomm\'ees
+(\texttt{XPACK\_ENCRYPTEDSAVEDOBJECTS\_ENCRYPTIONKEY},
+\texttt{XPACK\_SECURITY\_ENCRYPTIONKEY},
+\texttt{XPACK\_REPORTING\_ENCRYPTIONKEY}) et inject\'ees \`a la fois dans le
+fichier de configuration et dans Docker Compose, ce qui a r\'esolu le
+probl\`eme.
+
+\subsection{Agent externe sans flux de donn\'ees}
+
+Un agent enr\^ol\'e sur une VM externe (\texttt{tbini},
+\texttt{192.168.184.138}) se connectait bien au plan de contr\^ole
+(\texttt{:8220}) mais restait \emph{degraded} sans produire de donn\'ees. La
+cause identifi\'ee : la sortie de donn\'ees par d\'efaut de Fleet pointe vers
+\texttt{http://elasticsearch:9200}, un nom DNS interne \`a Docker que les
+agents externes ne peuvent pas r\'esoudre. La correction consiste \`a faire
+pointer la sortie par d\'efaut vers l'adresse r\'eseau r\'eelle
+(\texttt{http://192.168.184.135:9200}), compatible avec les agents h\'eb\'erg\'es
+hors conteneurs.
+
+\subsection{Stabilit\'e du worker}
+
+Le worker Celery \'etait victime d'OOM (\emph{SIGKILL}) en maintenant
+plusieurs cha\^ines de centaines de d\'ecouvertes avec une concurrence de 4,
+provoquant des boucles de re-livraison. La concurrence a \'et\'e abaiss\'ee
+\`a 2, les limites m\'emoire du worker et de Redis relev\'ees, et les
+t\^aches bloqu\'ees purg\'ees.
+
+\subsection{Sant\'e d'Elasticsearch}
+
+Le cluster monop\^ole \'etait \emph{yellow} avec des r\'eplicas non
+assign\'es. Un \emph{index template} (\texttt{voc-beats-zero-replicas}) a
+\'et\'e cr\'e\'e pour forcer 0 r\'eplica sur les indices des Beats ; le
+cluster est d\'esormais \emph{green}.
+
+\subsection{Scan partiel}
+
+L'ancienne liste fixe de 41 ports manquait des services expos\'es sur
+d'autres ports (ex.\ \texttt{7547}). Le scan est pass\'e \`a
+l'int\'egralit\'e des ports (\texttt{-p-}) avec d\'etection OS
+(\texttt{-O}), au d\'emarrage puis toutes les 6\,h.
+
+\subsection{Tickets dupliqu\'es}
+
+Les scans r\'ep\'et\'es g\'en\'eraient des tickets GLPI en double. La
+fonction \texttt{find\_existing\_ticket} v\'erifie d\'esormais l'existence
+d'un ticket ouvert pour le couple (\texttt{h\^ote}, \texttt{CVE}) avant toute
+cr\'eation.
+
+\clearpage
+
+% ===========================================================================
+% 13. TESTS ET VALIDATION
+% ===========================================================================
+\section{Tests et validation}
+
+\subsection{Tests unitaires}
+
+Le d\'ep\^ot contient des tests unitaires couvrant trois p\^oles :
+
+\begin{itemize}[leftmargin=1.6em]
+  \item \textbf{Intelligence sur les menaces} : parsing des r\'eponses EPSS
+        et KEV, cache, recherche OSV et Exploit-DB ;
+  \item \textbf{Enrichissement des tickets} : classification OWASP,
+        correspondances MITRE ATT\&CK, g\'en\'eration des checklists ;
+  \item \textbf{Moteur de risque} : validation des entr\'ees et des scores,
+        bornes de s\'ev\'erit\'e, effets des bonus.
+\end{itemize}
+
+Ils sont ex\'ecut\'es dans les conteneurs du worker et du moteur de risque :
+
+\begin{lstlisting}[language=bash,caption={Ex\'ecution des tests}]
+docker exec voc-celery-worker  python -m pytest /app/tests -v
+docker exec voc-risk-engine    python -m pytest /app/tests -v
+\end{lstlisting}
+
+\subsection{Validation de bout en bout}
+
+La cha\^ine compl\`ete a \'et\'e valid\'ee en conditions r\'eelles :
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item d\'eclenchement du scan au d\'emarrage du conteneur ;
+  \item d\'ecouverte de 8 h\^otes actifs sur le r\'eseau LAN ;
+  \item scan complet avec d\'etection OS et d\'ecouverte du port
+        \texttt{7547} ;
+  \item cr\'eation de l'\'ev\'enement MISP, indexation des documents dans
+        Elasticsearch, ouverture des tickets GLPI \texttt{\#418} et
+        \texttt{\#419} ;
+  \item v\'erification du champ \texttt{os} et du score de risque dans les
+        documents index\'es.
+\end{enumerate}
+
+\clearpage
+
+% ===========================================================================
+% 14. CONCLUSION
+% ===========================================================================
+\section{Conclusion g\'en\'erale}
+
+Le stage effectu\'e au sein de la soci\'et\'e \textbf{G\'erence Informatique},
+encadr\'e par \textbf{Mr.~MDAOUKHI Adel}, m'a permis de concevoir, d\'eployer
+et d'exploiter la \textbf{VOC Platform}, une plateforme compl\`ete de gestion
+automatis\'ee des vuln\'erabilit\'es.
+
+La plateforme r\'epond \`a la probl\'ematique pos\'ee : elle scanne
+automatiquement le r\'eseau (tous les ports, avec d\'etection des syst\`emes
+d'exploitation), corr\`ele les d\'ecouvertes avec plusieurs sources
+d'intelligence sur les menaces (NVD, MISP, EPSS, CISA KEV, OSV, Exploit-DB),
+calcule un score de risque orient\'e m\'etier, publie les r\'esultats dans des
+tableaux de bord Elastic et ouvre automatiquement des tickets de
+rem\'ediation dans GLPI. Elle est d\'esormais op\'erationnelle : cluster
+Elasticsearch \emph{green}, plus de 5\,000 documents de vuln\'erabilit\'es
+index\'es, 419 tickets de rem\'ediation cr\'e\'es, un partage de
+renseignements actif via MISP et une gestion centralis\'ee des agents via
+Fleet.
+
+Sur le plan technique, ce projet m'a permis de mettre en pratique les
+conteneurs Docker, l'architecture de messages (RabbitMQ), l'ordonnancement de
+t\^aches (Celery), la stack Elastic et la conception d'une API avec FastAPI.
+Les difficult\'es rencontr\'ees (stabilit\'e de Fleet, cl\'es de chiffrement
+de Kibana, agents externes, mont\'ee en charge du worker) ont \'et\'e
+syst\'ematiquement analys\'ees et r\'esolues, ce qui a \'et\'e tr\`es
+formateur.
+
+Enfin, ce stage m'a \'egalement permis de d\'evelopper des comp\'etences
+transversales : analyse de probl\`emes d'exploitation, documentation technique,
+travail en autonomie et communication avec l'\'equipe. La plateforme reste
+\'evolutive : elle pourra \^etre \'etendue \`a d'autres r\'eseaux, \`a des
+scans authentifi\'es plus profonds et \`a l'enr\^olement d'agents
+suppl\'ementaires pour enrichir encore la supervision s\'ecuritaire de
+l'infrastructure.
+
+% ===========================================================================
+% ANNEXES
+% ===========================================================================
+\clearpage
+\appendix
+
+\section{Annexe A : variables d'environnement principales}
+
+\begin{center}
+\small
+\begin{longtable}{@{}p{0.30\linewidth} p{0.32\linewidth} p{0.32\linewidth}@{}}
+\toprule
+\textbf{Variable} & \textbf{D\'efaut} & \textbf{R\^ole} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{BROKER\_URL} & \texttt{amqp://voc:...@rabbitmq:5672//} & Courtier Celery \\
+\texttt{RESULT\_BACKEND} & \texttt{redis://:...@redis:6379/0} & Backend Celery \\
+\texttt{DISCOVERY\_SUBNET} & \texttt{192.168.184.0/24} & Cible du scan nmap \\
+\texttt{NMAP\_SCAN\_ARGS} & \texttt{-sS -sV --version-intensity 5 -O -p- -T4} & Arguments de scan par d\'efaut \\
+\texttt{MISP\_URL} & \texttt{https://192.168.184.135:8443} & Base API MISP \\
+\texttt{GLPI\_URL} & \texttt{http://192.168.184.135:8080} & Base API GLPI \\
+\texttt{RISK\_ENGINE\_URL} & \texttt{http://risk-engine:8000} & Service de risque \\
+\texttt{LOGSTASH\_URL} & \texttt{http://logstash:5044} & Ingestion ELK \\
+\texttt{RISK\_KEV\_BOOST} & \texttt{2.0} & Bonus KEV \\
+\texttt{RISK\_EPSS\_THRESHOLD} & \texttt{0.5} & Seuil du bonus EPSS \\
+\texttt{RISK\_EPSS\_BOOST} & \texttt{1.0} & Bonus EPSS \\
+\texttt{XPACK\_SECURITY\_ENCRYPTIONKEY} & -- & Chiffrement s\'ecurit\'e Kibana \\
+\texttt{XPACK\_ENCRYPTEDSAVEDOBJECTS\_ENCRYPTIONKEY} & -- & Chiffrement des objets Kibana \\
+\texttt{XPACK\_REPORTING\_ENCRYPTIONKEY} & -- & Chiffrement des rapports \\
+\texttt{CHECKLIST\_IN\_GLPI} & \texttt{true} & Checklist dans les tickets \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Annexe B : op\'erations courantes}
+
+\begin{lstlisting}[language=bash,caption={Op\'erations courantes}]
+# Sante du cluster
+curl -u elastic:\$ELASTIC_PASSWORD http://localhost:9200/_cluster/health
+
+# Scan manuel du sous-reseau
+docker exec voc-celery-worker python -c \
+  "from tasks import nmap_network_scan; nmap_network_scan.delay('192.168.184.0/24')"
+
+# Sante du moteur de risque
+curl http://localhost:8000/health
+
+# Noter un exemple de decouverte
+curl -X POST http://localhost:8000/score -H 'Content-Type: application/json' \
+  -d '{"cvss_base": 7.5, "is_critical_asset": true, "exploit_available": true}'
+
+# Journaux du worker
+docker logs -f voc-celery-worker
+\end{lstlisting}
+
+\section{Annexe C : tests}
+
+\begin{lstlisting}[language=bash,caption={Ex\'ecution des tests}]
+docker exec voc-celery-worker  python -m pytest /app/tests -v
+docker exec voc-risk-engine    python -m pytest /app/tests -v
+\end{lstlisting}
+
+\section{Annexe D : glossaire}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\textbf{Terme} & \textbf{D\'efinition} \\
+\midrule
+CVE & \emph{Common Vulnerabilities and Exposures} -- identifiant public d'une vuln\'erabilit\'e \\
+CVSS & \emph{Common Vulnerability Scoring System} -- note de gravit\'e 0--10 \\
+EPSS & \emph{Exploit Prediction Scoring System} -- probabilit\'e d'exploitation \\
+KEV & \emph{Known Exploited Vulnerabilities} -- catalogue CISA des failles exploit\'ees \\
+IOC & \emph{Indicator of Compromise} -- indicateur de compromission \\
+ITSM & \emph{IT Service Management} -- gestion des services informatiques \\
+SOC & \emph{Security Operations Center} -- centre d'op\'erations de s\'ecurit\'e \\
+TIP & \emph{Threat Intelligence Platform} -- plateforme d'intelligence sur les menaces \\
+AMQP & \emph{Advanced Message Queuing Protocol} -- protocole de messagerie \\
+OS & \emph{Operating System} -- syst\`eme d'exploitation \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\end{document}

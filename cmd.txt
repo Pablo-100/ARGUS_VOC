@@ -1,0 +1,1744 @@
+[200~Ey bro 😎. بما إنك باش تعطيه لـ **OpenCode Zen / Alpha Unlimited Max**، ما نحبش نعطيه prompt عادي من نوع *“add these features”*. يلزم prompt يخليه يتصرف كـ **senior security architect + backend engineer + DevOps + QA + documentation engineer**، ويعمل audit للكود الموجود قبل ما يبدّل حاجة.
+
+وزيد، OpenCode يدعم `AGENTS.md` كـproject rules، والـBuild agent عنده full tool access؛ لذلك الأفضل prompt هذا يكون **implementation mandate** واضح، موش مجرد feature request. ([OpenCode][1])
+
+هذا هو الـprompt اللي نعطيه أنا:
+
+# VOC PLATFORM — PRODUCTION-GRADE COMPLETION & HARDENING MISSION
+
+You are operating as a **Senior Cybersecurity Architect, Vulnerability Management Engineer, Threat Intelligence Engineer, DevSecOps Engineer, Python/FastAPI Engineer, SOC Engineer, QA Engineer, and Technical Documentation Engineer**.
+
+You are working directly inside the existing repository:
+
+`/opt/voc-platform`
+
+The repository already contains a functional Vulnerability Operations Center (VOC) platform.
+
+Your mission is **NOT to rebuild the project from scratch**.
+
+Your mission is to:
+
+1. Audit the existing implementation.
+2. Understand the current architecture and all existing services.
+3. Preserve working functionality.
+4. Identify missing capabilities, inconsistencies, weaknesses, technical debt, security problems, and documentation gaps.
+5. Implement the missing production-grade capabilities described below.
+6. Test everything end-to-end.
+7. Fix regressions.
+8. Update the documentation.
+9. Leave the repository in a coherent, deployable, demonstrable state.
+
+Do not blindly trust the README.
+Treat the **actual source code, Docker Compose configuration, environment configuration, APIs, database schema, services, and runtime behavior as the source of truth**.
+
+---
+
+# 1. EXISTING PLATFORM CONTEXT
+
+The platform currently implements a vulnerability-management pipeline around:
+
+* Nmap discovery
+* Full TCP port scanning
+* Service/version detection
+* OS detection
+* Differential vulnerability state
+* NVD CVE enrichment
+* MISP enrichment and event publishing
+* CISA KEV
+* EPSS
+* Risk scoring
+* FastAPI risk engine
+* Celery
+* Celery Beat
+* RabbitMQ
+* Redis
+* Elasticsearch
+* Logstash
+* Kibana
+* GLPI
+* MISP
+* Fleet Server
+* Elastic Agents / Beats
+* Portal authentication
+* RBAC
+* Automatic ticket generation
+* Smart ticket assignment
+* Attack-path / blast-radius analysis
+* Weekly exploitation prediction
+* Prediction validation
+
+Do NOT remove these capabilities unless the existing implementation is demonstrably broken and replacement is necessary.
+
+First inspect how every component actually works.
+
+---
+
+# 2. NON-NEGOTIABLE ENGINEERING RULE
+
+Before modifying anything:
+
+## Perform a complete repository audit.
+
+Inspect at minimum:
+
+* docker-compose.yml
+* .env.example
+* workers/
+* risk-engine/
+* portal/
+* kibana/
+* logstash/
+* scripts/
+* Dockerfiles
+* requirements files
+* configuration files
+* database schema
+* Celery configuration
+* Redis state management
+* Elasticsearch indexes
+* GLPI integration
+* MISP integration
+* NVD integration
+* Fleet configuration
+* dashboards
+* authentication
+* authorization
+* API endpoints
+* error handling
+* logging
+* retries
+* concurrency
+* persistence
+* network configuration
+* health checks
+
+Use repository exploration aggressively.
+
+Do not make architectural assumptions before reading the implementation.
+
+---
+
+# 3. CREATE A BASELINE BEFORE CHANGES
+
+Before implementation, establish:
+
+* current services
+* current ports
+* current Docker networks
+* current volumes
+* current environment variables
+* current APIs
+* current database tables
+* current Elasticsearch indexes
+* current scheduled jobs
+* current queues
+* current authentication flow
+* current vulnerability lifecycle
+* current ticket lifecycle
+
+Run appropriate validation commands.
+
+If possible, verify:
+
+* Docker Compose configuration
+* Python syntax
+* imports
+* application startup
+* health endpoints
+* Elasticsearch connectivity
+* Redis connectivity
+* RabbitMQ connectivity
+* GLPI connectivity
+* MISP connectivity
+* portal startup
+* risk-engine startup
+
+Create a short internal baseline before changing the system.
+
+---
+
+# 4. PRIMARY OBJECTIVE
+
+Upgrade the platform from a technically impressive lab prototype into a **production-oriented Vulnerability Operations Center**.
+
+The final system must provide:
+
+```text
+DISCOVER
+   ↓
+IDENTIFY ASSETS
+   ↓
+DETECT VULNERABILITIES
+   ↓
+CORRELATE CVEs
+   ↓
+ENRICH THREAT INTELLIGENCE
+   ↓
+CONTEXTUALIZE ASSET RISK
+   ↓
+CALCULATE PRIORITY
+   ↓
+CREATE SLA
+   ↓
+CREATE TICKET
+   ↓
+ASSIGN OWNER
+   ↓
+REMEDIATE
+   ↓
+RE-SCAN
+   ↓
+VERIFY
+   ↓
+CLOSE
+   ↓
+MEASURE
+```
+
+The system must support the complete vulnerability lifecycle.
+
+---
+
+# 5. FEATURE 1 — REAL ASSET INVENTORY
+
+Implement a proper asset inventory.
+
+An asset must support at least:
+
+```text
+asset_id
+hostname
+ip_address
+mac_address
+os
+os_version
+open_ports
+services
+software
+versions
+CPEs
+environment
+department
+owner
+business_service
+criticality
+internet_exposed
+network_zone
+first_seen
+last_seen
+status
+```
+
+Support asset criticality levels such as:
+
+```text
+1 = Low
+2 = Moderate
+3 = Important
+4 = High
+5 = Mission Critical
+```
+
+Support environments:
+
+```text
+Development
+Testing
+Staging
+Production
+```
+
+Support asset status:
+
+```text
+Active
+Inactive
+Decommissioned
+Unknown
+```
+
+Assets discovered by Nmap should automatically be created or updated.
+
+Do not create duplicate assets.
+
+Use stable identity logic.
+
+Prefer:
+
+```text
+MAC + IP + hostname
+```
+
+with sensible fallback logic when one identifier is unavailable.
+
+---
+
+# 6. FEATURE 2 — ASSET CRITICALITY MUST AFFECT RISK
+
+The risk engine must become genuinely contextual.
+
+Risk must not depend only on CVSS.
+
+Consider:
+
+* CVSS
+* EPSS
+* CISA KEV
+* exploit availability
+* MISP active threat context
+* asset criticality
+* network exposure
+* production status
+* internet exposure
+* business service criticality
+* attack-path relevance
+
+Design the scoring model carefully.
+
+Do NOT arbitrarily destroy the existing scoring model.
+
+First document the current model.
+
+Then improve it in a backward-compatible way.
+
+Make the final score explainable.
+
+Every vulnerability should expose:
+
+```text
+base_score
+threat_score
+asset_score
+exposure_score
+exploit_score
+final_risk_score
+severity
+risk_factors
+```
+
+Example:
+
+```text
+CVSS contribution:       7.5
+EPSS contribution:       HIGH
+KEV:                     YES
+Internet exposed:        YES
+Asset criticality:       5/5
+Exploit available:       YES
+
+Final Risk:              9.6 / 10
+Severity:                CRITICAL
+```
+
+The user must be able to understand WHY a vulnerability received its score.
+
+---
+
+# 7. FEATURE 3 — BETTER CVE / CPE CORRELATION
+
+Implement robust:
+
+```text
+Asset
+ ↓
+Software
+ ↓
+Version
+ ↓
+CPE
+ ↓
+CVE
+```
+
+Persist:
+
+* product
+* vendor
+* version
+* CPE
+* CVE
+* CVSS
+* CWE
+* affected version information
+
+Avoid false positives wherever possible.
+
+Do not assume that an open port alone proves vulnerability.
+
+Clearly distinguish:
+
+```text
+Observed
+Potentially affected
+Confirmed
+Resolved
+Unknown
+```
+
+---
+
+# 8. FEATURE 4 — AUTHENTICATED VULNERABILITY SCANNING
+
+Add a clean integration layer for authenticated vulnerability scanning.
+
+Preferred architecture:
+
+```text
+Nmap
++
+Greenbone/OpenVAS
++
+Future scanner adapters
+```
+
+Do NOT hard-code the platform around one scanner.
+
+Create an abstraction such as:
+
+```text
+ScannerAdapter
+├── NmapAdapter
+├── OpenVASAdapter
+└── FutureScannerAdapter
+```
+
+The scanner layer must normalize results into the VOC internal vulnerability schema.
+
+Support scanner metadata:
+
+```text
+scanner
+scan_id
+scan_timestamp
+target
+finding_id
+severity
+evidence
+plugin_id
+cve
+cpe
+solution
+```
+
+If OpenVAS/Greenbone is not currently available in the environment:
+
+* implement the integration architecture
+* provide configuration
+* provide API/client abstraction
+* provide mocked/test fixtures
+* do not fake successful real scans
+
+Clearly document what requires external deployment.
+
+---
+
+# 9. FEATURE 5 — COMPLETE VULNERABILITY LIFECYCLE
+
+Implement:
+
+```text
+DETECTED
+   ↓
+TRIAGED
+   ↓
+TICKET_CREATED
+   ↓
+ASSIGNED
+   ↓
+IN_PROGRESS
+   ↓
+REMEDIATED
+   ↓
+RE-SCAN_PENDING
+   ↓
+VERIFICATION
+   ↓
+RESOLVED
+   ↓
+CLOSED
+```
+
+Support reopening:
+
+```text
+RESOLVED → REOPENED
+```
+
+if a later scan detects the same vulnerability again.
+
+Every state transition must be auditable.
+
+---
+
+# 10. FEATURE 6 — REMEDIATION VERIFICATION
+
+This is critical.
+
+A vulnerability must not become resolved simply because a user clicks "resolved".
+
+The system must support:
+
+```text
+Ticket marked Remediated
+       ↓
+Schedule verification scan
+       ↓
+Run scan
+       ↓
+CVE still present?
+       ├── YES → REOPEN
+       └── NO  → VERIFIED / CLOSED
+```
+
+Store:
+
+```text
+verification_scan_id
+verification_timestamp
+verification_result
+evidence
+```
+
+The UI must clearly distinguish:
+
+```text
+Remediated by user
+```
+
+from:
+
+```text
+Verified by scanner
+```
+
+---
+
+# 11. FEATURE 7 — SLA MANAGEMENT
+
+Implement configurable remediation SLAs.
+
+Default:
+
+```text
+Critical → 24 hours
+High     → 72 hours
+Medium   → 7 days
+Low      → 30 days
+```
+
+Allow configuration through environment/configuration rather than hard-coding everything.
+
+Every vulnerability ticket should have:
+
+```text
+sla_deadline
+sla_status
+created_at
+assigned_at
+resolved_at
+remaining_time
+```
+
+SLA states:
+
+```text
+ON_TRACK
+DUE_SOON
+OVERDUE
+PAUSED
+COMPLETED
+```
+
+Dashboard metrics must include:
+
+```text
+SLA compliance %
+Overdue vulnerabilities
+Due within 24h
+Due within 72h
+Average remediation time
+MTTR
+```
+
+---
+
+# 12. FEATURE 8 — SMART TICKET ROUTING
+
+Preserve the existing smart-routing logic.
+
+Improve it if necessary.
+
+Assignment should consider:
+
+* resolution rate
+* current workload
+* severity
+* skill/category if available
+* historical remediation time
+* availability
+
+Avoid assigning too many critical tickets to one analyst.
+
+Provide transparent assignment reasoning.
+
+Example:
+
+```text
+Assigned to: analyst1
+
+Reason:
+Resolution rate: 86%
+Open tickets: 3
+Average remediation time: 9.4h
+Eligible for Critical: YES
+```
+
+---
+
+# 13. FEATURE 9 — AUDIT TRAIL
+
+Implement a complete security audit trail.
+
+Record:
+
+```text
+timestamp
+user
+role
+action
+resource
+resource_id
+old_value
+new_value
+IP if available
+result
+```
+
+Audit actions include:
+
+* login
+* failed login
+* logout
+* ticket creation
+* assignment
+* reassignment
+* status change
+* severity change
+* risk override
+* asset modification
+* user creation
+* user deletion
+* role modification
+* configuration change
+* vulnerability closure
+* vulnerability reopening
+
+Audit logs must be immutable from normal users.
+
+---
+
+# 14. FEATURE 10 — STRONG RBAC
+
+Keep:
+
+```text
+admin
+soc
+user
+```
+
+but formalize permissions.
+
+Admin:
+
+* everything
+* user management
+* system configuration
+
+SOC:
+
+* vulnerability visibility
+* asset visibility
+* ticket management
+* assignment
+* remediation
+* dashboards
+
+User:
+
+* own assigned tickets
+* own remediation actions
+* own assets if applicable
+
+Never rely only on frontend hiding.
+
+Authorization MUST be enforced server-side.
+
+Test IDOR/BOLA-style authorization failures.
+
+---
+
+# 15. FEATURE 11 — NOTIFICATION ENGINE
+
+Create a notification abstraction:
+
+```text
+NotificationProvider
+├── TelegramProvider
+├── EmailProvider
+└── FutureProvider
+```
+
+Notifications should support at minimum:
+
+### Critical vulnerability
+
+```text
+CRITICAL VULNERABILITY DETECTED
+
+CVE:
+Asset:
+IP:
+Risk:
+CVSS:
+EPSS:
+KEV:
+Exposure:
+SLA:
+Ticket:
+```
+
+### SLA overdue
+
+### Ticket assignment
+
+### Vulnerability resolved
+
+### Vulnerability reopened
+
+Do not hard-code Telegram logic into vulnerability logic.
+
+Use a clean adapter architecture.
+
+---
+
+# 16. FEATURE 12 — DASHBOARD
+
+Improve the portal dashboard.
+
+The main dashboard should show:
+
+```text
+Total Assets
+Active Vulnerabilities
+Critical Vulnerabilities
+High Vulnerabilities
+KEV Vulnerabilities
+Internet-Exposed Vulnerabilities
+Overdue Tickets
+SLA Compliance
+Average MTTR
+Open Tickets
+Resolved Tickets
+New Vulnerabilities
+Resolved Vulnerabilities
+```
+
+Add trends:
+
+```text
+Vulnerabilities over time
+Risk over time
+Critical findings over time
+MTTR over time
+SLA compliance over time
+```
+
+---
+
+# 17. FEATURE 13 — VULNERABILITY DETAIL PAGE
+
+Create a professional vulnerability detail view.
+
+Must include:
+
+```text
+CVE
+Title
+Description
+Affected asset
+IP
+Hostname
+OS
+Service
+Port
+Software
+Version
+CPE
+CVSS
+EPSS
+KEV
+MISP intelligence
+Exploit availability
+Asset criticality
+Network exposure
+Risk score
+Risk explanation
+Evidence
+Remediation
+References
+Ticket
+SLA
+Timeline
+Audit history
+```
+
+The page should answer:
+
+> What is vulnerable?
+> Why is it dangerous?
+> Why is it prioritized?
+> What should I do?
+> Who owns it?
+> Is it fixed?
+> Was the fix verified?
+
+---
+
+# 18. FEATURE 14 — ATTACK PATH / BLAST RADIUS
+
+Preserve the existing attack graph.
+
+Improve it so that it clearly communicates:
+
+* entry points
+* critical assets
+* vulnerable assets
+* reachable assets
+* blast radius
+* attack-path relevance
+
+Do not claim a real exploit path if the graph only represents network reachability.
+
+Use accurate terminology.
+
+Distinguish:
+
+```text
+Network Reachability
+```
+
+from:
+
+```text
+Confirmed Attack Path
+```
+
+---
+
+# 19. FEATURE 15 — EXPLOITATION FORECAST
+
+Preserve the current weekly prediction capability.
+
+But make the methodology transparent.
+
+Document:
+
+```text
+Inputs
+Feature engineering
+Scoring
+Prediction horizon
+Output
+Validation
+```
+
+Track:
+
+```text
+precision@10
+recall@10 if feasible
+true positives
+false positives
+new KEV entries
+```
+
+Do not market a deterministic ranking formula as "AI" unless the implementation actually uses a machine-learning model.
+
+Use technically accurate terminology.
+
+---
+
+# 20. FEATURE 16 — SECURITY HARDENING
+
+Perform a complete security audit.
+
+Check:
+
+* secrets
+* environment variables
+* JWT
+* password hashing
+* session handling
+* token expiration
+* API authentication
+* API authorization
+* IDOR
+* SQL injection
+* command injection
+* SSRF
+* path traversal
+* insecure deserialization
+* unsafe subprocess usage
+* Docker privileges
+* NET_RAW
+* root containers
+* exposed ports
+* TLS
+* CORS
+* security headers
+* rate limiting
+* brute-force protection
+* logging
+* sensitive information leakage
+
+Nmap requires privileges, but minimize privileges everywhere else.
+
+Do not unnecessarily run services as root.
+
+Never commit:
+
+* passwords
+* API keys
+* tokens
+* certificates
+* private keys
+* real credentials
+
+---
+
+# 21. FEATURE 17 — NETWORK SECURITY
+
+Review the existing Docker network architecture.
+
+Maintain separation between:
+
+```text
+frontend
+backend
+data
+```
+
+where appropriate.
+
+Verify that:
+
+* Redis is not publicly exposed
+* MariaDB is not publicly exposed
+* RabbitMQ broker is not unnecessarily exposed
+* Elasticsearch is restricted
+* Kibana access is authenticated
+* GLPI access is controlled
+* MISP access is controlled
+* Risk Engine requires authentication
+* Portal APIs enforce authorization
+
+Do not expose administrative services to the Internet.
+
+Document firewall requirements.
+
+---
+
+# 22. FEATURE 18 — OBSERVABILITY
+
+Keep the existing ELK/Beats architecture where justified.
+
+For each observability component, explicitly document:
+
+```text
+Filebeat   → logs
+Metricbeat → metrics
+Packetbeat → network telemetry
+Auditbeat  → audit/security events
+Heartbeat  → availability
+```
+
+Do not keep components merely because they look impressive.
+
+If a component provides no real value, explain why before removing it.
+
+Implement:
+
+* health endpoints
+* structured logging
+* correlation IDs
+* task IDs
+* scan IDs
+* error tracking
+* retry visibility
+
+A vulnerability finding should be traceable through the pipeline.
+
+Example:
+
+```text
+scan_id
+  ↓
+finding_id
+  ↓
+enrichment
+  ↓
+risk calculation
+  ↓
+ticket
+  ↓
+verification scan
+```
+
+---
+
+# 23. FEATURE 19 — ERROR HANDLING AND RESILIENCE
+
+Review all external integrations.
+
+Every integration must have:
+
+* timeout
+* retry strategy
+* exponential backoff where appropriate
+* failure logging
+* graceful degradation
+* circuit-breaker-like behavior where appropriate
+* no infinite retry loops
+
+External services include:
+
+* NVD
+* MISP
+* GLPI
+* Elasticsearch
+* RabbitMQ
+* Redis
+* scanner APIs
+
+A temporary MISP failure must not destroy the vulnerability pipeline.
+
+---
+
+# 24. FEATURE 20 — DATA MODEL CONSISTENCY
+
+Review all schemas.
+
+Ensure that:
+
+* CVE representation is consistent
+* severity is consistent
+* risk score is numeric
+* timestamps are UTC
+* asset identifiers are stable
+* ticket IDs are consistent
+* scan IDs are traceable
+* duplicate findings are prevented
+
+Avoid multiple incompatible representations of the same entity.
+
+---
+
+# 25. FEATURE 21 — API QUALITY
+
+Review all FastAPI APIs.
+
+Implement where appropriate:
+
+* Pydantic validation
+* typed responses
+* error schemas
+* authentication
+* authorization
+* pagination
+* filtering
+* sorting
+* rate limiting
+* OpenAPI documentation
+
+Avoid exposing internal implementation details.
+
+---
+
+# 26. FEATURE 22 — TESTING
+
+This is mandatory.
+
+Implement meaningful tests.
+
+At minimum:
+
+## Unit tests
+
+* risk scoring
+* CVE correlation
+* asset identity
+* differential analysis
+* SLA calculation
+* ticket assignment
+* state transitions
+* prediction scoring
+
+## Integration tests
+
+* Redis
+* RabbitMQ
+* Elasticsearch
+* Risk Engine
+* GLPI
+* MISP
+
+where practical.
+
+## API tests
+
+Test:
+
+* authentication
+* authorization
+* invalid input
+* unauthorized access
+* CRUD
+* pagination
+* filtering
+
+## End-to-end test
+
+Create a realistic flow:
+
+```text
+Asset discovered
+→ vulnerability generated
+→ enrichment
+→ risk score
+→ ticket
+→ assignment
+→ remediation
+→ verification scan
+→ resolved
+```
+
+---
+
+# 27. FEATURE 23 — DEMO MODE
+
+Create a safe deterministic demo/test mode.
+
+It should allow the platform to demonstrate:
+
+```text
+1 asset
+1 vulnerability
+1 critical finding
+1 ticket
+1 analyst
+1 SLA
+1 remediation
+1 verification
+```
+
+without requiring a real vulnerable production system.
+
+This must NEVER pretend that a real vulnerability scan happened.
+
+Clearly label demo data.
+
+---
+
+# 28. FEATURE 24 — DOCUMENTATION
+
+Rewrite the README after implementation.
+
+The README must contain:
+
+## Overview
+
+What the VOC is.
+
+## Business Problem
+
+Why vulnerability management needs automation.
+
+## Architecture
+
+High-level architecture.
+
+## Technical Architecture
+
+Detailed architecture.
+
+## Data Flow
+
+End-to-end flow.
+
+## Features
+
+Complete feature list.
+
+## Installation
+
+Exact setup instructions.
+
+## Configuration
+
+Environment variables.
+
+## Security
+
+Security controls.
+
+## Services
+
+Complete service inventory.
+
+Use a table:
+
+```text
+Service
+Container
+Purpose
+Port
+Network
+Persistence
+Dependencies
+```
+
+## API
+
+Important endpoints.
+
+## Vulnerability Lifecycle
+
+Detection → remediation → verification.
+
+## Risk Scoring
+
+Explain the formula.
+
+## Asset Criticality
+
+Explain contextual risk.
+
+## SLA
+
+Explain deadlines.
+
+## Ticket Routing
+
+Explain assignment.
+
+## Threat Intelligence
+
+Explain:
+
+NVD
+EPSS
+CISA KEV
+MISP
+
+## Attack Path
+
+Explain exactly what the graph represents.
+
+## Forecasting
+
+Explain methodology and validation.
+
+## Troubleshooting
+
+Common failures.
+
+## Security Hardening
+
+Production recommendations.
+
+## Backup / Restore
+
+Document volumes and recovery.
+
+## Upgrade
+
+How to safely upgrade.
+
+## Screenshots
+
+Add placeholders or actual screenshots where available.
+
+---
+
+# 29. IMPORTANT — DO NOT OVERENGINEER
+
+Do not add technologies just because they are popular.
+
+Do not introduce:
+
+* Kubernetes
+* Kafka
+* PostgreSQL
+* MongoDB
+* another frontend framework
+* another queue
+* another cache
+* another SIEM
+
+unless there is a concrete technical reason.
+
+Prefer the existing architecture.
+
+The goal is:
+
+```text
+MORE CAPABILITY
++
+MORE RELIABILITY
++
+MORE SECURITY
++
+BETTER UX
+-
+UNNECESSARY COMPLEXITY
+```
+
+---
+
+# 30. RESOURCE EFFICIENCY
+
+The platform may run in a constrained lab/server environment.
+
+Optimize:
+
+* Docker memory limits
+* Elasticsearch heap
+* Kibana memory
+* Celery concurrency
+* scan concurrency
+* MISP requests
+* NVD requests
+* Redis cache
+* Elasticsearch retention
+* Log volume
+
+Avoid unnecessary duplicate processing.
+
+Do not perform expensive full scans when differential or targeted scanning is sufficient.
+
+Make scan scheduling configurable.
+
+---
+
+# 31. DATA RETENTION
+
+Implement/document configurable retention for:
+
+* scan results
+* vulnerabilities
+* resolved vulnerabilities
+* tickets
+* audit logs
+* telemetry
+* prediction history
+
+Do not allow Elasticsearch to grow indefinitely.
+
+Provide sensible ILM/retention recommendations.
+
+---
+
+# 32. BACKUP / RESTORE
+
+Document and, where practical, implement backup procedures for:
+
+* Elasticsearch
+* GLPI
+* MISP
+* portal database
+* configuration
+* encryption keys
+* important volumes
+
+Never backup secrets into Git.
+
+Document recovery procedures.
+
+---
+
+# 33. CONFIGURATION CLEANUP
+
+Review `.env.example`.
+
+Every required variable must be documented.
+
+Separate:
+
+```text
+required
+optional
+development
+production
+```
+
+Never place real credentials in `.env.example`.
+
+Generate strong random-secret instructions.
+
+---
+
+# 34. CODE QUALITY
+
+Enforce:
+
+* type hints
+* clear function boundaries
+* small modules
+* consistent naming
+* no duplicated logic
+* no dead code
+* no silent exception swallowing
+* meaningful logging
+* docstrings for important components
+* configuration centralized
+* no magic numbers unless documented
+
+Use formatters/linters already present in the project.
+
+Do not introduce unnecessary tooling.
+
+---
+
+# 35. DO NOT BREAK EXISTING FUNCTIONALITY
+
+Before changing an existing subsystem:
+
+1. Read it.
+2. Understand it.
+3. Identify callers.
+4. Identify dependencies.
+5. Add tests.
+6. Modify it.
+7. Re-test it.
+
+Never replace a working subsystem merely for stylistic reasons.
+
+---
+
+# 36. MIGRATIONS
+
+If schema changes are required:
+
+* create explicit migration logic
+* preserve existing data where possible
+* document migration
+* make migrations idempotent
+* provide rollback considerations
+
+Do not silently delete existing data.
+
+---
+
+# 37. DOCKER COMPOSE QUALITY
+
+Review the complete Compose stack.
+
+Ensure:
+
+* healthchecks
+* restart policies
+* dependency conditions
+* persistent volumes
+* network isolation
+* resource limits
+* no unnecessary host ports
+* secure environment handling
+
+Use explicit image versions where practical.
+
+Avoid `latest` for production-critical services unless there is a documented reason.
+
+---
+
+# 38. FINAL ACCEPTANCE CRITERIA
+
+The project is NOT finished until all of the following are true:
+
+### Architecture
+
+* [ ] Existing architecture understood
+* [ ] No unnecessary technologies introduced
+* [ ] Service dependencies documented
+* [ ] Network segmentation verified
+
+### Vulnerability Management
+
+* [ ] Asset inventory
+* [ ] Asset criticality
+* [ ] CVE/CPE correlation
+* [ ] NVD enrichment
+* [ ] EPSS
+* [ ] CISA KEV
+* [ ] MISP
+* [ ] Risk scoring
+* [ ] Explainable risk factors
+* [ ] Differential analysis
+* [ ] Authenticated scanner architecture
+
+### Lifecycle
+
+* [ ] Detection
+* [ ] Triage
+* [ ] Ticket creation
+* [ ] Assignment
+* [ ] Remediation
+* [ ] Re-scan
+* [ ] Verification
+* [ ] Closure
+* [ ] Reopening
+
+### Operations
+
+* [ ] SLA
+* [ ] MTTR
+* [ ] SLA compliance
+* [ ] Notifications
+* [ ] Audit trail
+* [ ] Smart routing
+
+### Security
+
+* [ ] RBAC
+* [ ] Server-side authorization
+* [ ] Secret management
+* [ ] API authentication
+* [ ] TLS verification
+* [ ] Docker hardening
+* [ ] Port exposure review
+* [ ] Security headers
+* [ ] Rate limiting where appropriate
+
+### Observability
+
+* [ ] Logs
+* [ ] Metrics
+* [ ] Health checks
+* [ ] Correlation IDs
+* [ ] Task IDs
+* [ ] Scan IDs
+* [ ] Error visibility
+
+### Testing
+
+* [ ] Unit tests
+* [ ] Integration tests
+* [ ] API tests
+* [ ] Authorization tests
+* [ ] End-to-end test
+* [ ] Regression test
+
+### Documentation
+
+* [ ] README rewritten
+* [ ] Architecture documented
+* [ ] Data flow documented
+* [ ] Service inventory
+* [ ] Configuration
+* [ ] Security
+* [ ] Backup
+* [ ] Restore
+* [ ] Troubleshooting
+* [ ] Demo scenario
+* [ ] Screenshots/placeholders
+
+---
+
+# 39. WORK METHOD — VERY IMPORTANT
+
+Do NOT attempt to blindly modify the entire project in one giant operation.
+
+Work in phases.
+
+## PHASE 0 — AUDIT
+
+Inspect everything.
+
+Produce:
+
+```text
+CURRENT STATE
+ARCHITECTURE
+FEATURES
+MISSING FEATURES
+BUGS
+SECURITY ISSUES
+TECHNICAL DEBT
+PROPOSED CHANGES
+```
+
+Then proceed.
+
+## PHASE 1 — DATA / ASSETS
+
+Implement:
+
+* asset inventory
+* asset identity
+* asset criticality
+* CPE/software correlation
+
+## PHASE 2 — RISK
+
+Implement:
+
+* contextual risk
+* explainability
+* scoring tests
+
+## PHASE 3 — LIFECYCLE
+
+Implement:
+
+* states
+* remediation
+* verification
+* reopening
+* SLA
+
+## PHASE 4 — TICKETING
+
+Improve:
+
+* routing
+* assignment
+* audit
+* notifications
+
+## PHASE 5 — SCANNING
+
+Implement:
+
+* scanner abstraction
+* authenticated scanner integration
+* normalized findings
+
+## PHASE 6 — SECURITY
+
+Perform full security audit and hardening.
+
+## PHASE 7 — OBSERVABILITY
+
+Improve logs, metrics, health and traceability.
+
+## PHASE 8 — TESTING
+
+Run unit/integration/API/E2E tests.
+
+## PHASE 9 — DOCUMENTATION
+
+Rewrite README and operational documentation.
+
+## PHASE 10 — FINAL VALIDATION
+
+Run the complete system.
+
+---
+
+# 40. WHEN YOU ENCOUNTER A PROBLEM
+
+Do NOT immediately ask me.
+
+First:
+
+1. inspect the code
+2. inspect logs
+3. inspect configuration
+4. reproduce the issue
+5. identify root cause
+6. implement the safest fix
+7. test
+8. document
+
+Only ask me if a decision genuinely requires information unavailable in the repository or environment.
+
+Do not fabricate credentials, URLs, API responses, scan results, vulnerabilities, or integrations.
+
+---
+
+# 41. SECURITY BOUNDARY
+
+This is a defensive vulnerability-management platform.
+
+All scanning must be treated as authorized infrastructure.
+
+Do not add functionality intended to attack arbitrary third-party systems.
+
+Keep scanning configurable to explicitly authorized CIDRs.
+
+Validate target CIDRs before execution.
+
+Provide safe defaults for laboratory environments.
+
+---
+
+# 42. FINAL REPORT
+
+When the implementation is complete, provide a concise final report containing:
+
+```text
+1. What was implemented
+2. What was already working
+3. What was fixed
+4. What was added
+5. Security improvements
+6. Testing performed
+7. Remaining limitations
+8. Deployment instructions
+9. Important environment variables
+10. Recommended next steps
+```
+
+Also provide:
+
+```text
+FINAL ARCHITECTURE
+FINAL SERVICE INVENTORY
+FINAL TEST RESULTS
+FINAL SECURITY STATUS
+```
+
+Do not claim success for something you did not actually test.
+
+---
+
+# 43. QUALITY BAR
+
+The final project should feel like:
+
+```text
+NOT:
+"student Docker project"
+
+BUT:
+"professional internal Vulnerability Operations Center"
+```
+
+Prioritize:
+
+* correctness
+* security
+* reliability
+* maintainability
+* observability
+* explainability
+* reproducibility
+* clean UX
+* professional documentation
+
+Do not optimize for the number of features.
+
+Optimize for **a coherent end-to-end security product**.
+
+Start with the repository audit now.
+

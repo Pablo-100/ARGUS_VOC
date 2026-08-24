@@ -1,0 +1,4 @@
+tbini | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}

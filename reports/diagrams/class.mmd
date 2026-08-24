@@ -1,0 +1,56 @@
+classDiagram
+    class CeleryTasks {
+        +beat_schedule : dict
+        +nmap_network_scan(subnet) list
+        +scan_host(host) dict
+        +process_network_results(results) diff
+        +enrich(finding)
+        +enhance(finding)
+        +score(finding)
+        +index_to_elk(finding)
+        +create_ticket(finding)
+        +sync_glpi_to_elk()
+    }
+    class NmapScanner {
+        +scan_host_raw(host) dict
+        +args : -sS -sV -O -p- -T4
+        +os_detection() str
+    }
+    class MispClient {
+        +search_ioc(cve) list
+        +create_event(finding) int
+    }
+    class NvdClient {
+        +get_cve(cve) dict
+    }
+    class ThreatIntel {
+        +get_epss(cve) float
+        +get_kev_entry(cve) dict
+        +get_osv(cve) dict
+        +search_exploitdb(cve) list
+    }
+    class RiskEngineClient {
+        +compute_score(input) RiskOutput
+    }
+    class GlpiClient {
+        +find_existing_ticket(host, cve) bool
+        +create_ticket(finding) int
+        +sync_tickets_to_dict() list
+    }
+    class LogstashClient {
+        +index_document(doc)
+        +index_resolved(doc)
+    }
+    class RedisStore {
+        +get_state(key)
+        +set_state(key, value)
+    }
+
+    CeleryTasks --> NmapScanner
+    CeleryTasks --> MispClient
+    CeleryTasks --> NvdClient
+    CeleryTasks --> ThreatIntel
+    CeleryTasks --> RiskEngineClient
+    CeleryTasks --> GlpiClient
+    CeleryTasks --> LogstashClient
+    CeleryTasks --> RedisStore

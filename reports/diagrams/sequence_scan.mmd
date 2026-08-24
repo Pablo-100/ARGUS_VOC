@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant B as Celery Beat
+    participant W as Worker
+    participant N as nmap
+    participant R as Redis
+    participant I as Intel (NVD, MISP, EPSS, KEV)
+    participant E as Moteur de risque
+    participant L as Logstash
+    participant ES as Elasticsearch
+    participant G as GLPI
+    participant M as MISP
+
+    B->>W: nmap_network_scan (démarrage / 6 h)
+    W->>N: nmap -sn (découverte)
+    N-->>W: hôtes actifs
+    loop pour chaque hôte
+        W->>N: nmap -sS -sV -O -p-
+        N-->>W: ports, versions, système d'exploitation
+        W->>R: comparaison voc:scan:state
+        R-->>W: nouvelle / toujours présente / résolue
+    end
+    alt nouvelle vulnérabilité
+        W->>I: enrich + enhance (CVE, IOC, EPSS, KEV)
+        W->>E: POST /score
+        E-->>W: risk_score, severity
+        W->>L: document enrichi (os, score)
+        L->>ES: index vulnerabilities-*
+        W->>G: create_ticket si risque >= 7
+        W->>M: création événement MISP
+    else toujours présente
+        W->>L: mise à jour sans doublon
+        L->>ES: index vulnerabilities-*
+    else résolue
+        W->>L: index_resolved (statut resolved)
+        L->>ES: index vulnerabilities-*
+    end

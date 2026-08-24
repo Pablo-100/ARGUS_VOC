@@ -1,0 +1,39 @@
+
+PLAY [VOC — préparation des machines Linux du réseau] **************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [tbini]
+
+TASK [common_logging : Détecter si Internet est joignable] *********************
+ok: [tbini]
+
+TASK [common_logging : Copier les paquets .deb locaux (chemin absolu)] *********
+changed: [tbini]
+
+TASK [common_logging : Installer rsyslog + auditd (hors-ligne)] ****************
+changed: [tbini] => (item=libestr0_0.1.11-1_amd64.deb)
+changed: [tbini] => (item=libfastjson4_1.2304.0-1_amd64.deb)
+changed: [tbini] => (item=liblognorm5_2.0.6-4_amd64.deb)
+changed: [tbini] => (item=libauparse0_3.0.9-1_amd64.deb)
+changed: [tbini] => (item=rsyslog_8.2302.0-1+deb12u1_amd64.deb)
+changed: [tbini] => (item=auditd_3.0.9-1_amd64.deb)
+changed: [tbini] => (item=audispd-plugins_3.0.9-1_amd64.deb)
+
+TASK [common_logging : Installer rsyslog + auditd (en ligne)] ******************
+skipping: [tbini]
+
+TASK [common_logging : Services actifs et persistants] *************************
+ok: [tbini] => (item=rsyslog)
+ok: [tbini] => (item=auditd)
+
+TASK [common_logging : Vérifier /var/log/auth.log] *****************************
+ok: [tbini]
+
+TASK [common_logging : debug] **************************************************
+ok: [tbini] => {
+    "msg": "tbini : mode HORS-LIGNE, rsyslog+auditd actifs, auth.log=présent."
+}
+
+PLAY RECAP *********************************************************************
+tbini                      : ok=7    changed=2    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
