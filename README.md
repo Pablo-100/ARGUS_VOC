@@ -1,52 +1,237 @@
-# 👁 ARGUS — Vulnerability Operations Center
+<div align="center">
 
-> **One console. Every signal.** Remplacez tous vos dashboards éparpillés
-> (Kibana, Zabbix, GLPI, MISP, RabbitMQ…) par une seule console SOC.
+<img src="portal/app/static/img/argus.svg" width="120" alt="ARGUS logo"/>
 
-A production-oriented, self-hosted **Vulnerability Operations Center**: it
-discovers assets on explicitly authorized networks, detects and correlates
-vulnerabilities, enriches them with threat intelligence, computes
-explainable contextual risk, opens SLA-tracked tickets with smart routing,
-and — critically — **only closes tickets after a scanner-verified re-scan**.
+# 👁 ARGUS
 
-```text
-DISCOVER → IDENTIFY ASSETS → DETECT VULNERABILITIES → CORRELATE CVEs
-→ ENRICH THREAT INTEL → CONTEXTUALIZE ASSET RISK → CALCULATE PRIORITY
-→ CREATE SLA → CREATE TICKET → ASSIGN OWNER → REMEDIATE → RE-SCAN
-→ VERIFY → CLOSE → MEASURE
-```
+### Vulnerability Operations Center
+
+**One console. Every signal.**
+
+*Un prototype fonctionnel de Vulnerability Operations Center (VOC) unifié qui remplace vos dashboards éparpillés (Kibana, Zabbix, GLPI, MISP, RabbitMQ…) par une seule console SOC.*
+
+[![Stage](https://img.shields.io/badge/Contexte-Stage%20d'été%202A-blue?style=flat-square)]()
+[![Cursus](https://img.shields.io/badge/TEK--UP-Cycle%20Ingénieur-orange?style=flat-square)]()
+[![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)](./LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)]()
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)]()
+[![Status](https://img.shields.io/badge/Status-Prototype%20fonctionnel-brightgreen?style=flat-square)]()
+
+</div>
 
 ---
 
-## Overview
+## 📌 Contexte
 
-The VOC is a defensive vulnerability-management platform built from:
+> **Ce projet a été réalisé dans le cadre du stage d'été de la deuxième année du cycle d'ingénieur** de TBINI Mustapha Amin, au sein de la société **Gérance Informatique**, sous l'encadrement de **Mr. MDAOUKHI Adel**. Il constitue un livrable pédagogique et technique de fin de stage.
+>
+> **Ce n'est pas un logiciel commercial ni un projet open-source.** Consultez la [licence](./LICENSE) pour les conditions d'utilisation.
 
-* **Nmap** (discovery + full TCP scan + service/version + OS detection) and an
-  adapter layer ready for authenticated scanners (**Greenbone/OpenVAS GMP**)
-* **NVD / EPSS / CISA KEV / OSV / Exploit-DB / VirusTotal / MISP**
-  threat-intelligence enrichment
-* A **FastAPI risk engine** producing explainable contextual scores
-* **Celery + RabbitMQ + Redis** task pipeline with retries and a dead-letter
-  queue for indexing outages
-* **Elasticsearch + Logstash + Kibana + Beats** observability stack
-* **GLPI** for ITSM ticket records, **MISP** for intel publishing
-* A single-page **portal** (FastAPI + SQLite) unifying everything behind one
-  login with capability-based RBAC
+---
 
-## Business Problem
+## 🎯 Vision du projet
 
-Manual vulnerability management fails at scale: scanners output thousands of
-raw findings, CVSS alone says nothing about *your* exposure, remediation is
-tracked in spreadsheets, "fixed" means "somebody clicked resolved", and there
-is no feedback loop between scans and tickets. The VOC automates that loop
-end-to-end and makes every prioritization decision auditable.
+Dans un SOC classique, un analyste bascule quotidiennement entre 5 à 8 outils dispersés — SIEM, ITSM, threat intelligence, broker, supervision — chacun avec son propre login, ses propres alertes, sa propre logique. Cette fragmentation opérationnelle est à l'origine de la majorité des angles morts défensifs.
 
-## Architecture
+**ARGUS** propose une réponse concrète à ce problème :
 
-![Architecture placeholder](docs/img/architecture.png)
+<div align="center">
 
-```text
+<img src="img/tmp_01.png" width="700" alt="Login page ARGUS"/>
+
+*Un point d'entrée unique, une identité visuelle claire, une promesse assumée : « One console. Every signal. »*
+
+</div>
+
+---
+
+## ✨ Ce qu'ARGUS fait de bout en bout
+
+```
+DISCOVER → IDENTIFY ASSETS → DETECT VULNERABILITIES → CORRELATE CVEs
+       ↓
+ENRICH THREAT INTEL → CONTEXTUALIZE ASSET RISK → CALCULATE PRIORITY
+       ↓
+CREATE SLA → CREATE TICKET → ASSIGN OWNER → REMEDIATE → RE-SCAN
+       ↓
+VERIFY → CLOSE → MEASURE
+```
+
+Chaque étape est **automatisée**, **explicable** et **auditée**. Un ticket ne peut être clôturé qu'après une **vérification technique** par re-scan — pas par déclaration d'analyste.
+
+---
+
+## 🖼️ Aperçu de la plateforme
+
+### 📊 Tableau de bord SOC unifié
+
+Un dashboard qui expose en un seul écran l'état complet du parc : findings critiques, exposition KEV, conformité SLA, MTTR, tickets ouverts, tendance des vulnérabilités, activité en temps réel.
+
+<div align="center">
+<img src="img/tmp_02.png" width="850" alt="SOC Overview - Dashboard principal"/>
+</div>
+
+<div align="center">
+<img src="img/tmp_03.png" width="850" alt="SOC Overview - Top CVE + Prévision d'exploitation + Tickets récents"/>
+</div>
+
+---
+
+### 🔧 Tools Hub — l'orchestration unifiée
+
+Chaque outil fédéré (Kibana, Elasticsearch, GLPI, MISP, RabbitMQ, Zabbix, Shuffle, Zeek) est présenté avec son état de santé en temps réel et un lien direct d'ouverture. Le menu contextuel « Services » offre un accès rapide à toutes les URLs natives.
+
+<div align="center">
+<img src="img/tmp_04.png" width="850" alt="Tools Hub - SIEM, ITSM, Threat Intel"/>
+</div>
+
+<div align="center">
+<img src="img/tmp_05.png" width="500" alt="Tools Hub - Messaging, Monitoring, SOAR"/>
+</div>
+
+---
+
+### 🖥️ Endpoint Activity — surveillance des machines
+
+Vue fédérée des agents Elastic enrôlés et du trafic réseau observé, avec compteurs 24h : changements de fichiers, processus, hôtes surveillés.
+
+<div align="center">
+<img src="img/tmp_09.png" width="850" alt="Endpoint Activity - Fleet Agents + Réseau live"/>
+</div>
+
+---
+
+### 🎫 Gestion des tickets avec SLA
+
+Vue complète des tickets automatiquement ouverts par le pipeline (risk ≥ 7) avec état SLA, sévérité, assignation, et actions rapides.
+
+<div align="center">
+<img src="img/tmp_26.png" width="850" alt="Vue All Tickets"/>
+</div>
+
+Détail d'un ticket avec CVE, risk score, CVSS, source, technique MITRE ATT&CK associée, et lien vers le ticket GLPI correspondant :
+
+<div align="center">
+<img src="img/tmp_22.png" width="500" alt="Ticket detail modal"/>
+</div>
+
+---
+
+### 🔬 Détail d'une vulnérabilité — scoring explicable
+
+Chaque vulnérabilité expose son **score de risque décomposé**, sa description NVD, les recommandations de remédiation et la chronologie complète de ses observations.
+
+<div align="center">
+<img src="img/tmp_20.png" width="600" alt="Vulnerability detail - CVE-2024-6387"/>
+</div>
+
+Composition transparente du score final : `base + threat + exploit + exposure + asset`, plafonné à 10.
+
+---
+
+### 🎯 Étude de cas — Operation Nightfall
+
+**Une simulation d'attaque contrôlée** conduite dans le laboratoire depuis une station Kali contre la machine agent `tbini` (Debian 12), validant les capacités défensives du prototype.
+
+#### Phase 1 — Reconnaissance (T1046 · MITRE ATT&CK)
+
+<div align="center">
+<img src="img/tmp_07.png" width="700" alt="Reconnaissance Nmap"/>
+</div>
+
+#### Phase 2 — Force brute SSH (T1110.001)
+
+<div align="center">
+<img src="img/tmp_10.png" width="900" alt="Hydra en cours d'exécution"/>
+</div>
+
+**Côté défensif** — le portail affiche immédiatement le mur de FAILED, chaque tentative attribuée à l'IP source (192.168.184.128) :
+
+<div align="center">
+<img src="img/tmp_11.png" width="900" alt="Mur de FAILED détectés"/>
+</div>
+
+#### Phase 3 — Compromission (T1078)
+
+Hydra trouve le mot de passe faible :
+
+<div align="center">
+<img src="img/tmp_12.png" width="900" alt="Hydra trouve le mot de passe"/>
+</div>
+
+L'attaquant se connecte en SSH — le badge **SUCCESS** apparaît au milieu des FAILED, signal caractéristique de compromission :
+
+<div align="center">
+<img src="img/tmp_13.png" width="900" alt="Signal SUCCESS après les FAILED"/>
+</div>
+
+<div align="center">
+<img src="img/tmp_15.png" width="600" alt="Session SSH réussie"/>
+</div>
+
+#### Phase 4 — Persistance (T1053)
+
+L'attaquant tente d'installer un script de persistance dans `/etc/cron.d/`. Refusé sans privilèges — élévation via `sudo` :
+
+<div align="center">
+<img src="img/tmp_17.png" width="700" alt="Tentative de persistance - permission refusée puis sudo"/>
+</div>
+
+Le module FIM d'ARGUS capture chaque opération sur les chemins surveillés :
+
+<div align="center">
+<img src="img/tmp_16.png" width="900" alt="FIM - événements de persistance détectés"/>
+</div>
+
+Création du compte de repli `svc_backup` :
+
+<div align="center">
+<img src="img/tmp_18.png" width="400" alt="Création du compte svc_backup"/>
+</div>
+
+#### Phase 5 — Révélation par le Deep Scan authentifié
+
+Le Deep Scan Ansible expose l'inventaire complet de la machine : **11 ports en écoute** et surtout **les deux comptes utilisateurs** — le compte légitime `tbini` et le compte de persistance `svc_backup` créé par l'attaquant.
+
+<div align="center">
+<img src="img/tmp_19.png" width="500" alt="Host Intel - comptes tbini et svc_backup"/>
+</div>
+
+*Aucun scan externe ne peut fournir cette information : seule une collecte authentifiée par SSH permet d'énumérer les comptes locaux.*
+
+#### Phase 6 — Traitement du ticket et vérification
+
+Le module de routage intelligent présente les analystes candidats avec leur taux de résolution et leur charge :
+
+<div align="center">
+<img src="img/tmp_21.png" width="450" alt="Routage intelligent du ticket"/>
+</div>
+
+Vue analyste après assignation — l'analyst1 peut démarrer le traitement :
+
+<div align="center">
+<img src="img/tmp_23.png" width="900" alt="Vue My Tickets côté analyst1"/>
+</div>
+
+Après remédiation, le ticket passe à `remediated · verifying` en attente de la preuve technique par re-scan :
+
+<div align="center">
+<img src="img/tmp_25.png" width="900" alt="Ticket #55 en état remediated · verifying"/>
+</div>
+
+#### Phase 7 — Traçabilité par le journal d'audit
+
+Chaque action est journalisée avec l'utilisateur, l'IP source, l'horodatage et le résultat :
+
+<div align="center">
+<img src="img/tmp_27.png" width="900" alt="Journal d'audit - chronologie complète"/>
+</div>
+
+---
+
+## 🏗️ Architecture technique
+
+```
                         ┌───────────────────────────┐
    DISCOVERY_SUBNET ──▶ │ celery-worker             │
    (beat every 6h)      │  scan→enrich→enhance→     │──▶ risk-engine (/score)
@@ -65,196 +250,42 @@ end-to-end and makes every prioritization decision auditable.
                         └──────────┘
 ```
 
-### Technical architecture
+**Isolation en 3 tiers** : les 20 conteneurs par défaut (26 avec les profils optionnels `zabbix` et `shuffle`) sont organisés en trois réseaux Docker isolés — `frontend`, `backend`, `data` — pour réduire la surface d'attaque en cas de compromission d'un service.
 
-| Layer | Components |
+### 📚 Couches fonctionnelles
+
+| Couche | Composants |
 |---|---|
-| Pipeline | Celery workers (`workers/tasks.py`), queues `scan/enrich/score/index/ticket` |
-| Scanning | `scanners/nmap_adapter.py`, `scanners/openvas_adapter.py` (GMP over TLS), `ScannerAdapter` base |
-| Assets | `workers/assets.py` — ES index `assets-v1` (alias `assets`), stable identity MAC+IP+hostname |
-| Risk | `risk-engine/main.py` v3 contextual additive model, X-API-Key auth |
-| Intel | `nvd_client.py` (CPE/version-aware), `threat_intel.py` (EPSS/KEV/OSV/EDB/VT), `misp_client.py` |
-| Tickets | GLPI REST (`glpi_client.py`), portal SQLite lifecycle + SLA + verification bridge |
-| Notifications | `notifications.py` provider adapters (Telegram/Email/log) drained from ES queue by beat |
-| Data | Elasticsearch daily indices via Logstash `source` routing, ILM retention policy `voc-retention` |
-| UI | Portal SPA (`static/app.js`) — dashboard, vulnerabilities (+detail modal), assets, tickets, ATT&CK, MISP/GLPI panels, infra, audit |
+| **Pipeline** | Celery workers (`workers/tasks.py`), files `scan / enrich / score / index / ticket`, retries exponentielles, dead-letter queue |
+| **Scanning** | `scanners/nmap_adapter.py`, `scanners/openvas_adapter.py` (GMP over TLS), base `ScannerAdapter` |
+| **Assets** | `workers/assets.py` — index ES `assets-v1` (alias `assets`), identité stable MAC+IP+hostname |
+| **Risk Engine** | `risk-engine/main.py` — modèle contextuel additif v3, authentification X-API-Key |
+| **Threat Intel** | `nvd_client.py` (CPE/version-aware), `threat_intel.py` (EPSS/KEV/OSV/EDB/VT), `misp_client.py` |
+| **Tickets** | GLPI REST (`glpi_client.py`), cycle de vie complet + SLA + verification bridge côté portail |
+| **Notifications** | `notifications.py` — adaptateurs Telegram / Email / log, drainés depuis une file ES |
+| **Data** | Elasticsearch indices quotidiens via Logstash (`source` routing), ILM policy `voc-retention` |
+| **UI** | Portal SPA vanilla JS + FastAPI — 14+ onglets (dashboard, vulnérabilités, tickets, ATT&CK, MISP, GLPI, infra, audit…) |
 
-## Data flow
+---
 
-1. Beat fires `nmap_network_scan(DISCOVERY_SUBNET)` every 6h (CIDRs validated,
-   mutual-exclusion lock in Redis).
-2. Live hosts are scanned per-host (`scan_host`); results form a chord into
-   `process_network_results`.
-3. The diff vs Redis state classifies findings **new / still-present /
-   resolved**, tracks tombstones so a returning CVE is flagged **REOPENED**.
-4. Every host observation upserts the **asset inventory** (no duplicates).
-5. Findings are enriched (MISP IOCs → CWE classification → ATT&CK mapping →
-   remediation/CIS checklist → EPSS/KEV/OSV/Exploit-DB/VirusTotal).
-6. Risk engine scores each finding **with asset context** from the inventory.
-7. Documents land in `vulnerabilities-*` through Logstash with
-   `finding_id` + `scan_id` correlation.
-8. New findings ≥ risk 7 open GLPI tickets and portal tickets (SLA deadline
-   computed from severity); critical ones trigger notifications.
-9. Analysts work tickets; **solve = remediated**, which queues a verification
-   request. The worker sweep re-scans; absent CVE ⇒ solved *(scanner)*,
-   present CVE ⇒ reopened. Closure without verification is an audited admin
-   override.
+## 🔐 Modèle de scoring de risque
 
-## Features
-
-**Endpoint activity (FIM)** — the Endpoints tab shows every file
-created/modified/deleted on the server (with sha256 hashes) and every process
-execution, as captured by the Auditbeat agent watching `/etc`, `/home`,
-`/root` and the platform directory · **Zabbix & Shuffle deployed** — optional
-compose profiles (`--profile zabbix`, `--profile shuffle`) running on-host;
-the Tools Hub probes them live · **Unified Tools Hub** — Kibana, Elasticsearch, GLPI, MISP, RabbitMQ, Zabbix
-(optional profile), Shuffle/Zeek (second-host integrations) with live health
-and single-sign-on deep links · **Dynamic roles** — admins create custom
-roles and grant per-capability CRUD permissions from a visual matrix
-(`roles.manage`), built-ins protected against lockout · **IP + hostname**
-everywhere, with reverse-DNS resolution during scans, manual hostname
-assignment that survives rescans, and automatic **device-change detection**
-(same IP, different machine → flagged with observation history) · **Native
-Dashboards tab** replicating key SOC views without a Kibana login.
-
-Asset inventory with criticality · contextual explainable risk · CPE/CVE
-correlation · **NSE active vulnerability checks** (findings carry
-`confidence: confirmed|potential` — confirmed means an nmap scripting-engine
-check actually probed the service and captured evidence) · authenticated-
-scanner abstraction (OpenVAS adapter ready, requires a ≥4 GB-RAM deployment) ·
-full vulnerability lifecycle with reopen-on-redetection · scanner-verified
-remediation · SLA management & metrics · smart ticket routing with reasoning ·
-immutable audit trail · notifications · MITRE ATT&CK mapping · attack-path/
-blast-radius graph · weekly exploitation forecast with KEV validation ·
-RBAC + brute-force protection · demo mode.
-
-## Installation
-
-Requirements: Linux host with Docker + Compose v2, ~8 GB RAM free, network
-reachability to the authorized discovery subnets.
-
-```bash
-git clone <repo> /opt/voc-platform && cd /opt/voc-platform
-cp .env.example .env
-openssl rand -hex 32   # repeat for PORTAL_SECRET, RISK_ENGINE_API_KEY, etc.
-$EDITOR .env           # fill REQUIRED secrets (compose refuses to start otherwise)
-docker compose up -d
-docker compose ps      # wait for all healthy
-```
-
-First start: Elasticsearch bootstrap (~2 min), then the setup container sets
-the kibana_system password and applies ILM retention. The portal seeds its
-admin user and imports high-risk findings automatically.
-
-Open **http://<host>:4200** — log in as `PORTAL_ADMIN_USERNAME`.
-
-## Configuration
-
-All configuration lives in `.env` (see `.env.example`, fully commented).
-Key groups: core secrets (REQUIRED), discovery CIDR, MISP/GLPI tokens, risk
-boosts, SLA budgets (`SLA_*_HOURS`), routing thresholds (`ROUTING_*`),
-scanner config (`OPENVAS_*`, `VERIFICATION_SCANNER`, `NMAP_SCAN_ARGS`),
-notifications (`NOTIFICATION_PROVIDERS`, `TELEGRAM_*`, `SMTP_*`), retention
-(`DATA_RETENTION_DAYS`).
-
-## Security
-
-* No default credentials — every secret is required via compose `:?`
-  fail-fast (admin `'admin'` fallback needs explicit opt-in).
-* Server-side capability RBAC on every endpoint (never UI-only); IDOR-tested.
-* JWT (12 h TTL) + PBKDF2-SHA256 (120k iterations) password hashing.
-* Login rate-limiting/lockout; success/failure/lockout all audited with IP.
-* Security headers (CSP, nosniff, frame-options, referrer-policy).
-* SSO deep-links with embedded credentials are OFF by default
-  (`VOC_SSO_EMBED_CREDENTIALS=false`).
-* Risk engine requires `X-API-Key`; Redis requires auth; admin surfaces bind
-  to configurable interfaces — see firewall notes below.
-* Nmap runs inside the worker container with `cap_drop: ALL` +
-  `cap_add: NET_RAW/NET_ADMIN` only.
-* Scanning targets are validated CIDRs from `DISCOVERY_SUBNET`; the platform
-  never attacks third-party systems.
-
-**Firewall guidance (production):** expose publicly only what users need
-(portal 4200). Keep ES 9200, Kibana 5601, RabbitMQ 15672, Logstash 9600,
-risk-engine 8000 off the internet (bind to localhost/VPN or firewall them);
-Fleet 8220 must be reachable by enrolled agents only.
-
-## Services
-
-| Service | Container | Purpose | Port | Network | Persistence | Dependencies |
-|---|---|---|---|---|---|---|
-| RabbitMQ | voc-rabbitmq | Broker | 15672 (mgmt) | backend,data | rabbitmq_data | – |
-| Redis | voc-redis | Cache/diff-state/DLQ | – | backend,data | redis_data | – |
-| Elasticsearch | voc-elasticsearch | Findings/assets store | 9200 | backend,data | es_data | – |
-| Logstash | voc-logstash | HTTP ingest + routing | 5044, 9600 | backend,data | – | ES |
-| Kibana | voc-kibana | Dashboards | 5601 | frontend,backend | kibana.yml | ES |
-| Fleet server | voc-fleet-server | Agent enrollment | 8220 | backend | fleet_server_state | ES, Kibana |
-| Filebeat | voc-elastic-agent | Logs | – | backend | host mounts | ES |
-| Metricbeat | voc-metricbeat | Metrics | – | backend/host | host mounts | ES |
-| Packetbeat | voc-packetbeat | Network telemetry | – | host | – | ES |
-| Auditbeat | voc-auditbeat | Audit/security events | – | backend | host mounts | ES |
-| Heartbeat | voc-heartbeat | Availability probes | – | host | – | ES |
-| Risk engine | voc-risk-engine | Contextual scoring API | 8000 | backend | – | – |
-| MariaDB (GLPI) | voc-mariadb | GLPI DB | – | backend,data | mariadb_data | – |
-| GLPI | voc-glpi | ITSM tickets | 8080 | frontend,backend | glpi_config | MariaDB |
-| MariaDB (MISP) | voc-misp-db | MISP DB | – | backend,data | misp_db_data | – |
-| MISP | voc-misp | Threat intel platform | 8443 | frontend,backend | config.php | misp-db, Redis |
-| Celery worker | voc-celery-worker | Pipeline execution | – | backend | logs | RMQ, Redis, ES |
-| Celery beat | voc-celery-beat | Schedules + startup scan | – | backend | beat_schedule_data | RMQ |
-| Portal | voc-portal | Web UI/API | 4200 | frontend,backend | portal_data | ES |
-
-Beats roles: Filebeat→logs, Metricbeat→metrics, Packetbeat→network telemetry,
-Auditbeat→audit events, Heartbeat→availability. Each maps to dashboards; none
-is decorative.
-
-## API
-
-Portal (JWT Bearer; interactive OpenAPI at `/docs`):
-
-```
-POST /api/login            POST /api/logout         GET  /api/me
-GET  /api/dashboard        GET  /api/tickets?scope= POST /api/tickets
-POST /api/tickets/{id}/assign|start|solve|reopen|close
-GET  /api/assets           GET/PATCH /api/assets/{asset_id}
-GET  /api/vulns            GET  /api/vulns/detail?finding_id=...
-GET  /api/vulns/detail/history?finding_id=...
-GET  /api/vulns/predictions[/validation]             GET /api/vulns/attack-graph
-GET  /api/misp/events      POST /api/misp/events    GET /api/glpi/tickets/{id}
-GET  /api/infra/queues     GET  /api/infra/es/health
-GET  /api/audit?action=&limit=                      GET /api/health
-```
-
-Risk engine: `POST /score` (X-API-Key) → `{risk_score, severity, factors,
-breakdown{base,threat,exploit,exposure,asset}, risk_factors[]}` · `GET /health`.
-
-## Vulnerability lifecycle
-
-```text
-DETECTED → TRIAGED(auto-import) → TICKET_CREATED(GLPI) → ASSIGNED
-→ IN_PROGRESS → REMEDIATED(user claim) → RESCAN_PENDING(queued)
-→ VERIFICATION(worker sweep)
-     ├─ CVE gone     → RESOLVED (resolved_by=scanner) → CLOSED
-     └─ CVE present  → REOPENED (ticket + GLPI + ES flipped back, counted)
-```
-Every transition is audited. Re-detection of a previously-resolved finding by
-a scheduled scan also triggers REOPENED automatically (tombstone logic).
-
-## Risk scoring
+Formule additive contextuelle **intégralement explicable** :
 
 ```
 final = min(base + threat + exploit + exposure + asset, 10)
 
-base     = CVSS base score
-threat   = KEV(+2.0) + EPSS≥0.5(+1.0) + active MISP context(+2.0)
-exploit  = public exploit available (+1.5)
-exposure = network_exposure × 2.0   (floor 1.5 when internet-exposed)
-asset    = criticality 5 → +50% of CVSS · 4 → +25%
-           + production env (+0.5) + attack-path relevance (≤ +1.0)
+base     = score CVSS de base
+threat   = KEV(+2.0) + EPSS≥0.5(+1.0) + MISP actif(+2.0)
+exploit  = exploit public disponible (+1.5)
+exposure = network_exposure × 2.0   (plancher 1.5 si Internet-exposed)
+asset    = criticité 5 → +50% du CVSS · criticité 4 → +25% · env prod (+0.5)
+           + attack-path relevance (≤ +1.0)
 ```
-All weights are env-tunable (`RISK_*`). Every response includes a
-machine-readable breakdown and a human-readable explanation list, e.g.
 
-```text
+Tous les poids sont configurables via variables d'environnement (`RISK_*`). Chaque réponse inclut un breakdown machine-readable **et** une explication en langage naturel :
+
+```
 CVSS contribution:       7.5   base_score
 EPSS 0.70 above 0.50:    +1.0  threat_score
 Internet-exposed floor:  +1.5  exposure_score
@@ -262,108 +293,230 @@ Criticality 4/5:         +1.88 asset_score
 Final Risk:              10/10 CRITICAL
 ```
 
-## Asset criticality
+---
 
-Assets get criticality **1 Low … 5 Mission Critical**, environment
-(development/testing/staging/production), owner, business service, network
-zone and internet-exposure flag — edited in the portal Assets tab (audited).
-The pipeline feeds these into the risk engine automatically, so the same CVE
-scores differently on a dev laptop vs an internet-facing production server.
+## 🛰️ Threat Intelligence (6 sources fédérées)
 
-## SLA
+| Source | Rôle |
+|---|---|
+| **NVD** | Corrélation CPE + version-range aware, extraction CWE, cache Redis |
+| **EPSS** (FIRST) | Probabilité empirique d'exploitation par CVE |
+| **CISA KEV** | Catalogue d'exploitations actives + flag ransomware |
+| **MISP** | Enrichissement REST + publication d'événements enrichis |
+| **OSV** | Signaux d'exploits open-source |
+| **Exploit-DB** | Disponibilité d'exploits publics |
 
-Default budgets (env-configurable): Critical 24 h · High 72 h · Medium 7 d ·
-Low 30 d. States `ON_TRACK / DUE_SOON / OVERDUE / COMPLETED / BREACHED`.
-Dashboard shows compliance %, overdue, due ≤24 h / ≤72 h, average remediation
-time (MTTR).
+---
 
-## Ticket routing
+## 🎯 Vérification NSE — findings « confirmed » vs « potential »
 
-Auto-assignment requires resolution rate > 50 %; highest rate wins, ties
-broken by lowest open load. Critical tickets additionally require rate ≥ 70 %
-and < 5 open tickets. Every assignment stores a transparent reason:
+Après chaque scan, une seconde passe Nmap exécute `--script "vuln and not (dos or intrusive)"` sur les ports ouverts uniquement (détection uniquement — scripts destructifs exclus). Chaque résultat `VULNERABLE` produit :
 
-```text
+- `confidence: confirmed` + sortie brute du script comme `evidence`
+- Sévérité extraite du script's risk factor, CVSS/CWE remplis depuis la NVD
+
+Les findings sur simple correspondance produit/version portent `confidence: potential`. L'explorateur de vulnérabilités affiche les badges **CONFIRMED** / **potential** ; la modale de détail rend le bloc d'evidence.
+
+---
+
+## 🔒 Sécurité
+
+- **Zéro credential par défaut** — chaque secret est requis via la directive Compose fail-fast `${SECRET:?}`
+- **RBAC serveur** sur chaque endpoint (jamais UI-only) ; testé contre les scénarios IDOR
+- **JWT** (TTL 12h) + hachage **PBKDF2-SHA256** (120k itérations)
+- **Rate-limiting + lockout** anti-brute-force ; succès/échec/lockout journalisés avec IP
+- **Headers de sécurité** HTTP (CSP, nosniff, frame-options, referrer-policy)
+- **SSO deep-links** avec credentials embarqués **désactivés par défaut**
+- **Risk engine** requiert `X-API-Key` ; Redis requiert authentification
+- Conteneur Nmap avec `cap_drop: ALL` + `cap_add: NET_RAW/NET_ADMIN` uniquement
+- Cibles de scan **validées comme CIDRs** issus de `DISCOVERY_SUBNET` — le prototype ne scanne jamais de systèmes tiers
+
+---
+
+## 🚀 Installation
+
+**Prérequis** : Linux avec Docker + Compose v2, ~8 Go RAM libres, accessibilité réseau vers les CIDRs de découverte autorisés.
+
+```bash
+git clone <repo> /opt/voc-platform && cd /opt/voc-platform
+
+# Copier le template
+cp .env.example .env
+
+# Générer les secrets
+openssl rand -hex 32   # répéter pour PORTAL_SECRET, RISK_ENGINE_API_KEY, etc.
+$EDITOR .env           # remplir TOUS les secrets marqués REQUIRED
+
+# Démarrer (20 conteneurs par défaut)
+docker compose up -d
+docker compose ps      # attendre que tous soient healthy
+
+# Ou avec les profils optionnels (26 conteneurs au total)
+docker compose --profile zabbix --profile shuffle up -d
+```
+
+**Premier démarrage** : bootstrap Elasticsearch (~2 min), puis le conteneur setup applique la config Kibana + ILM. Le portail crée son admin et importe les findings à risque élevé automatiquement.
+
+Ouvrir **http://\<host\>:4200** — login avec `PORTAL_ADMIN_USERNAME`.
+
+---
+
+## 📊 SLA et routage
+
+**Budgets par défaut** (env-configurable) :
+- Critical : **24h**
+- High : **72h**
+- Medium : **7 jours**
+- Low : **30 jours**
+
+**États** : `ON_TRACK` · `DUE_SOON` · `OVERDUE` · `COMPLETED` · `BREACHED`
+
+**Routage automatique** — l'auto-assignation requiert un taux de résolution > 50 % ; le plus haut taux gagne, ties broken par charge la plus faible. Chaque assignation stocke une raison transparente :
+
+```
 Assigned to: analyst1
 Reason: Resolution rate: 86%; Open tickets: 3; Avg remediation time: 9.4h;
         Eligible for Critical: YES
 ```
 
-## Threat intelligence
+---
 
-* **NVD** — CPE + version-range aware lookup (no port-only assumptions),
-  CWE extraction, Redis-cached, rate-limited.
-* **EPSS** (FIRST) — exploitation probability per CVE.
-* **CISA KEV** — actively-exploited catalog + ransomware-campaign flag.
-* **MISP** — restSearch enrichment of new findings + event publication.
-* **OSV / Exploit-DB / VirusTotal** — exploit availability signals.
+## 🕵️ Attack path & forecasting
 
-## NSE active checks ("confirmed" findings)
+**Attack path (`attack-graph-*`)** — graphe quotidien modélisant la joignabilité réseau intra-sous-réseau entre actifs observés + blast radius (somme des risques des actifs critiques joignables). **Terminologie honnête** : les arêtes sont des joignabilités, pas des exploitabilités confirmées.
 
-After each host scan the worker runs a second nmap pass restricted to the
-ports already found open, using `--script "vuln and not (dos or intrusive)"`
-(detection-only: DoS/intrusive/exploit scripts are excluded). Any VULNERABLE
-result is correlated to CVE ids and stored with:
+**Forecasting (`predictions-*`)** — ranking hebdomadaire des top-N CVEs à exploiter sous 7 jours. **Modèle transparent à pondération explicite** (pas un modèle ML) :
+- EPSS : **40 %**
+- Percentile EPSS : **15 %**
+- Exploit public : **20 %**
+- CISA KEV : **10 %**
+- Risk score interne : **15 %**
 
-* `confidence: confirmed` + the raw script output as `evidence`
-* severity from the script's risk factor, CVSS/CWE filled from NVD
+Auto-validation contre les nouvelles entrées KEV (`prediction-validation-*`) → précision@10 mesurée dans le temps.
 
-Findings matched only on product/version keep `confidence: potential`.
-The Vulnerabilities explorer shows CONFIRMED/potential badges; the detail
-modal renders the evidence block. Configure via `NMAP_NSE_VULN_SCAN`,
-`NMAP_VULN_SCRIPTS`, `NSE_HOST_TIMEOUT`.
+---
 
-## Attack path
+## 🧪 Tests
 
-The daily graph (`attack-graph-*`) models **same-subnet network
-reachability** between assets observed by the scanner, plus blast radius =
-summed risk of reachable critical assets. It is honest about terminology:
-edges are reachability, not confirmed exploitability — "Confirmed Attack
-Path" claims require an authenticated-scanner finding.
+**91 tests automatisés** répartis en 3 suites :
 
-## Forecasting
+| Suite | Volume | Couverture |
+|---|---|---|
+| Workers Celery + Risk Engine | 67 tests | Scoring, enrichissement, CWE, GMP OpenVAS, assets, notifications, FIM, déduplication |
+| Portail FastAPI | 24 tests | Auth, lockout, RBAC/IDOR, cycle tickets, SLA, matrice rôles, pagination |
 
-Weekly ranking of top-N CVEs likely to be exploited within 7 days:
-weighted heuristic (EPSS 40 %, percentile 15 %, public exploit 20 %, KEV 10 %,
-internal risk 15 %) — a transparent scoring model, not an ML model.
-Self-validation stores precision@10 against new KEV entries
-(`prediction-validation-*`).
+Résultat au dernier passage complet : **91 réussis / 0 échec** en ~45 secondes.
 
-## Troubleshooting
+---
 
-| Symptom | Cause / fix |
+## 📁 Structure du dépôt
+
+```
+ARGUS_VOC/
+├── docker-compose.yml          # Orchestration (20 par défaut, 26 avec profils)
+├── .env.example                # Template (safe to commit)
+├── README.md                   # Ce fichier
+├── PROJECT_REFERENCE.md        # Référentiel technique complet
+├── LICENSE                     # Licence propriétaire (voir ci-dessous)
+├── ansible/                    # Deep Scan authentifié
+│   ├── deepscan.yml            # Playbook principal
+│   ├── run_deepscan.sh         # Wrapper systemd timer
+│   ├── roles/                  # deep_scan / common_logging / elastic_agent
+│   └── inventory.ini
+├── docs/                       # Documentation additionnelle
+│   ├── ATTACK_SIMULATION.md    # Guide de simulation Operation Nightfall
+│   ├── CREDENTIALS.md          # Structure des credentials
+│   ├── EXTRA_TOOLS.md          # Zabbix, Shuffle, Zeek
+│   └── PHASE0_AUDIT.md         # Audit initial
+├── img/                        # Captures d'écran de la plateforme
+├── kibana/                     # Configuration Kibana
+├── logstash/                   # Pipeline Logstash
+├── portal/                     # Portail unifié (FastAPI + SPA)
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── auth.py
+│   │   ├── roles.py            # RBAC 24 capacités
+│   │   ├── routes_*.py         # Endpoints modulaires
+│   │   ├── static/             # SPA vanilla JS
+│   │   └── tests/
+├── reports/                    # Rapport de stage (PDF/tex)
+├── risk-engine/                # Moteur de scoring FastAPI
+│   ├── main.py                 # Formule contextuelle v3
+│   └── tests/
+├── scripts/                    # Configs Beats et scripts init
+└── workers/                    # Pipeline Celery
+    ├── tasks.py                # Chaînage scan→enrich→score→index→ticket
+    ├── scanners/               # nmap + openvas adapters
+    ├── nvd_client.py           # Corrélation CPE/version
+    ├── threat_intel.py         # 5 sources fédérées
+    ├── misp_client.py
+    ├── soc_analytics.py        # Attack graph + forecasting
+    └── tests/
+```
+
+---
+
+## 🛠️ Stack technique
+
+| Catégorie | Technologies |
 |---|---|
-| ES yellow/red | Disk watermark breach — free space or raise `watermark.high`; replicas auto-set 0 |
-| No findings after scan | Wrong `DISCOVERY_SUBNET`, hosts unreachable from container, check `docker logs voc-celery-worker` |
-| `enrich rejected missing_scan_id` | Out-of-band payload without valid scan metadata — expected guard |
-| GLPI tickets missing | Check `GLPI_APP_TOKEN/USER_TOKEN`, category id exists |
-| Verification stuck pending | Scanner unavailable — request keeps `attempts`, check worker logs |
-| Portal restart loop `readonly database` | `chown -R 999:999` the `portal_data` volume |
+| **Backend** | Python 3.11, FastAPI, Celery 5.3, RabbitMQ 3.12, Redis 7 |
+| **Data** | Elasticsearch 8.11, Logstash 8.11, Kibana 8.11, SQLite (portail), MariaDB 10.6 (GLPI/MISP) |
+| **Observabilité** | Elastic Beats x5 (Filebeat, Metricbeat, Packetbeat, Auditbeat, Heartbeat) |
+| **Scanning** | Nmap 7.x + NSE scripts, OpenVAS/GVM (GMP over TLS) |
+| **Threat Intel** | NVD, EPSS, CISA KEV, MISP, OSV, Exploit-DB |
+| **ITSM** | GLPI |
+| **Automation** | Ansible 2.15+, systemd timers |
+| **SOAR (optionnel)** | Shuffle |
+| **Supervision (optionnel)** | Zabbix |
+| **Orchestration** | Docker + Docker Compose v2 |
+| **Frontend** | JavaScript vanilla (SPA), HTML5, CSS3 |
 
-## Security hardening (production recommendations)
+---
 
-Swap portal auth to an IdP/SAML and drop `platform_pass` storage; put TLS in
-front of the portal/Kibana/GLPI/MISP (reverse proxy); restrict admin ports to
-a management network; set `VOC_SSO_EMBED_CREDENTIALS=false` (default);
-rotate secrets quarterly; enable Elasticsearch snapshot backups.
+## 📖 Documentation
 
-## Backup / Restore
+- **[Rapport de stage complet](reports/report.pdf)** — 76 pages, 9 chapitres détaillés, méthodologie, architecture, implémentation, tests
+- **[PROJECT_REFERENCE.md](PROJECT_REFERENCE.md)** — référentiel technique exhaustif
+- **[docs/ATTACK_SIMULATION.md](docs/ATTACK_SIMULATION.md)** — guide de simulation Operation Nightfall
+- **[docs/CREDENTIALS.md](docs/CREDENTIALS.md)** — gestion des secrets
+- **[docs/EXTRA_TOOLS.md](docs/EXTRA_TOOLS.md)** — activation Zabbix / Shuffle / Zeek
 
-State lives in named volumes: `es_data` (findings/assets/analytics),
-`mariadb_data`, `misp_db_data`, `glpi_config`, `redis_data`,
-`portal_data` (SQLite users/tickets/audit), `rabbitmq_data`,
-`fleet_server_state`. Snapshot ES via its snapshot API, dump MariaDB with
-`mysqldump`, copy the volumes. Never back secrets into Git; `.env` stays on
-the host. Restore = restore volume contents, then `docker compose up -d`.
+---
 
-## Upgrade
+## 👤 Auteur
 
-1. Back up volumes (above). 2. `git pull`. 3. Review `.env.example` diff.
-4. `docker compose build && docker compose up -d`. Schema changes are applied
-idempotently at portal startup (column-level migrations, data preserved).
+**TBINI Mustapha Amin**  
+Élève ingénieur — 2ème année cycle d'ingénieur  
+🎓 TEK-UP University — École Supérieure Privée de Technologies et d'Ingénierie  
+🏢 Stage effectué au sein de **Gérance Informatique**  
+👨‍💼 Encadrant professionnel : **Mr. MDAOUKHI Adel**  
+📅 Année universitaire 2025–2026
 
-## Screenshots
+---
 
-*Dashboard:* `docs/img/dashboard.png` *(placeholder)* · *Vulnerability detail:*
-`docs/img/vuln-detail.png` *(placeholder)* · *Assets:* `docs/img/assets.png`
-*(placeholder)* · *Audit trail:* `docs/img/audit.png` *(placeholder)*
+## ⚖️ Licence
+
+**Ce projet est distribué sous une licence propriétaire stricte.**
+
+Toute utilisation, reproduction, modification, redistribution ou usage commercial du code source, de la documentation, des diagrammes, des captures d'écran ou de tout autre élément de ce dépôt est **formellement interdite** sans autorisation écrite préalable de l'auteur.
+
+**Voir le fichier [LICENSE](./LICENSE) pour les conditions complètes.**
+
+---
+
+## ⚠️ Avertissement
+
+Cette plateforme est un **prototype fonctionnel réalisé dans le cadre d'un stage académique**, validée dans un environnement de laboratoire (VMware, 8 Go RAM, 4 vCPUs). Elle n'est ni auditée pour un usage en production, ni couverte par une garantie de quelque nature que ce soit.
+
+Les scénarios d'attaque (Operation Nightfall) ont été conduits **exclusivement contre des machines du laboratoire autorisé**, dans un cadre strictement pédagogique. Toute reproduction contre des systèmes tiers non autorisés constitue un **acte illégal**.
+
+---
+
+<div align="center">
+
+**ARGUS** — *One console. Every signal.*
+
+© 2026 TBINI Mustapha Amin — Tous droits réservés
+
+</div>
