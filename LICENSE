@@ -1,0 +1,487 @@
+========================================================================
+                    ARGUS — VULNERABILITY OPERATIONS CENTER
+                   STRICT PROPRIETARY SOFTWARE LICENSE
+                        ALL RIGHTS RESERVED — 2026
+========================================================================
+
+Copyright (c) 2026 TBINI Mustapha Amin
+
+    Author:            TBINI Mustapha Amin
+    Institution:       TEK-UP University
+                       École Supérieure Privée de Technologies
+                       et d'Ingénierie
+    Host company:      Gérance Informatique (Tunisia)
+    Professional
+    supervisor:        Mr. MDAOUKHI Adel
+    Project title:     ARGUS — Vulnerability Operations Center (VOC)
+    Academic context:  Summer internship report
+                       Second year of the engineering cycle
+                       Academic year 2025–2026
+    Repository:        https://github.com/Pablo-100/ARGUS_VOC
+
+========================================================================
+0. PREAMBLE
+========================================================================
+
+The software, source code, object code, binaries, configuration files,
+containers, container images, documentation, diagrams, UML models,
+screenshots, illustrations, reports, technical writings, presentations,
+data models, database schemas, playbooks, scripts, and any other work
+of authorship contained in, distributed with, or associated with the
+ARGUS project (collectively, the "Software") are the exclusive
+intellectual property of the Author, TBINI Mustapha Amin (the "Author").
+
+The Software was produced as part of a summer internship performed by
+the Author during the second year of the engineering cycle at TEK-UP
+University, within the premises of Gérance Informatique (the "Host
+Company"). The Software is delivered as an academic deliverable and is
+NOT open-source, NOT free software, and NOT public domain.
+
+By accessing, viewing, downloading, cloning, forking, reading, copying,
+compiling, executing, referencing, citing, or otherwise interacting
+with any portion of the Software, YOU (an individual, a group of
+individuals, an entity, a company, an organization, an educational
+institution, a government body, or any automated system, artificial
+intelligence, machine-learning model, agent, crawler, scraper, or
+robot acting on their behalf) explicitly and irrevocably agree to be
+bound by every term of this License in its entirety.
+
+If you do NOT agree to every term below, you are strictly forbidden
+from accessing, downloading, cloning, forking, reading, copying,
+compiling, executing, referencing, citing, or otherwise interacting
+with any portion of the Software, and you must immediately destroy any
+copy in your possession.
+
+========================================================================
+1. DEFINITIONS
+========================================================================
+
+1.1  "Author" means TBINI Mustapha Amin, the sole and exclusive holder
+     of all rights, title, and interest in the Software.
+
+1.2  "Software" means the entirety of the ARGUS project, including but
+     not limited to: source code (Python, JavaScript, HTML, CSS, YAML,
+     JSON, TOML, INI, SQL, shell, Dockerfile, Jinja2, and any other
+     language), compiled binaries, container images, configuration
+     files, environment templates, orchestration files (docker-compose,
+     Kubernetes manifests, Ansible playbooks and roles), documentation
+     (Markdown, LaTeX, PDF, docx), UML diagrams, architecture diagrams,
+     network topology diagrams, class diagrams, deployment diagrams,
+     activity diagrams, sequence diagrams, mockups, wireframes, user
+     interface designs, logos, icons, illustrations, screenshots,
+     screen captures, video captures, animated GIFs, project reports,
+     technical writings, presentations, slides, methodology documents,
+     test suites, test data, benchmark data, sample data, seeded data,
+     the ARGUS name, the ARGUS logo, the ARGUS visual identity, the
+     baseline "One console. Every signal.", and any derivative work
+     based on any of the foregoing.
+
+1.3  "You" and "Your" refer to any natural or legal person, group,
+     entity, organization, or automated system accessing the Software
+     in any form and by any means.
+
+1.4  "Use" means any interaction with the Software including but not
+     limited to: viewing, reading, executing, running, compiling,
+     copying, cloning, forking, downloading, storing, hosting,
+     mirroring, distributing, modifying, adapting, translating,
+     reverse-engineering, disassembling, decompiling, benchmarking,
+     testing, analyzing, indexing, ingesting, embedding, or
+     incorporating into any other work, product, dataset, model, or
+     service.
+
+1.5  "Written Authorization" means an explicit, signed, dated document
+     issued personally by the Author (TBINI Mustapha Amin), delivered
+     through a verifiable communication channel, and specifying:
+         (a) the identity of the authorized party,
+         (b) the exact scope of permitted Use,
+         (c) the temporal validity of the authorization,
+         (d) any applicable financial, legal, or attribution
+             conditions,
+         (e) any territorial restrictions.
+
+     A general public disclaimer, a README statement, a social-media
+     post, an email from any third party, a purchase order, a
+     verbal agreement, or a permission from the Host Company,
+     TEK-UP University, or any other institution does NOT constitute
+     Written Authorization under this License.
+
+========================================================================
+2. OWNERSHIP AND RESERVATION OF RIGHTS
+========================================================================
+
+2.1  All rights, title, and interest in and to the Software, including
+     all associated intellectual property rights (copyright, patents,
+     trade secrets, moral rights, database rights, sui generis rights,
+     trademark rights, design rights, and any other applicable
+     intellectual property rights recognized worldwide), are and shall
+     remain the exclusive property of the Author.
+
+2.2  The publication of the Software on a public code-hosting platform
+     (including but not limited to GitHub, GitLab, Bitbucket, SourceHut,
+     or any mirror thereof) does NOT constitute:
+         (a) a license grant of any kind,
+         (b) a waiver of copyright,
+         (c) a dedication to the public domain,
+         (d) an implied consent for reuse, remix, or redistribution,
+         (e) permission for AI training, dataset ingestion, or
+             embedding into machine-learning models.
+
+2.3  The absence of a technical protection measure (encryption, DRM,
+     login requirement, private repository) does not diminish the
+     scope of the exclusive rights reserved by this License.
+
+2.4  All trademarks, service marks, trade names, logos, and visual
+     identity elements associated with ARGUS (including the shield-eye
+     logo, the ARGUS wordmark, and the baseline "One console. Every
+     signal.") are the exclusive property of the Author and may not
+     be used in any form without prior Written Authorization.
+
+========================================================================
+3. STRICTLY PROHIBITED ACTIVITIES
+========================================================================
+
+Except as expressly and unambiguously granted by prior Written
+Authorization from the Author, You are strictly and absolutely
+forbidden from performing any of the following activities with respect
+to the Software, in whole or in part, in original or modified form,
+in any medium, and by any means:
+
+3.1  COPYING AND DISTRIBUTION
+     (a) Copying the Software, in whole or in part;
+     (b) Reproducing the Software on any medium (physical or digital);
+     (c) Distributing, redistributing, publishing, or making available
+         the Software to any third party;
+     (d) Hosting the Software on any server, cloud service, container
+         registry, or code-hosting platform;
+     (e) Mirroring, forking, or creating derivative repositories;
+     (f) Sharing the Software via file-transfer services, peer-to-peer
+         networks, or any other means.
+
+3.2  USE AND EXECUTION
+     (a) Installing, deploying, or executing the Software in any
+         environment (production, staging, development, test,
+         laboratory, personal, corporate, governmental);
+     (b) Using the Software as a component of any other software,
+         service, platform, or system;
+     (c) Using the Software to provide services to third parties
+         (managed services, SaaS, MSSP, consulting, auditing);
+     (d) Using the Software in any commercial, professional, or
+         revenue-generating activity;
+     (e) Using the Software to scan, monitor, analyze, or interact
+         with any system, network, or asset that You do not
+         personally own or that You are not explicitly authorized
+         to test.
+
+3.3  MODIFICATION AND DERIVATIVE WORKS
+     (a) Modifying, altering, adapting, or translating the Software;
+     (b) Creating derivative works based on the Software;
+     (c) Merging the Software with any other work;
+     (d) Extracting components, modules, algorithms, formulas,
+         data models, or architectural patterns for reuse
+         elsewhere;
+     (e) Rewriting the Software in another programming language
+         while preserving its structure, logic, or design.
+
+3.4  REVERSE ENGINEERING
+     (a) Reverse-engineering, disassembling, or decompiling the
+         Software;
+     (b) Attempting to derive the source code from binary
+         representations;
+     (c) Analyzing the Software to reproduce its functionality or
+         behavior in a distinct implementation.
+
+3.5  ARTIFICIAL INTELLIGENCE AND DATA MINING
+     (a) Ingesting, embedding, or incorporating the Software into
+         any dataset, corpus, or training set;
+     (b) Using the Software to train, fine-tune, evaluate, benchmark,
+         or improve any machine-learning model, large language
+         model, neural network, artificial intelligence agent, or
+         automated code-generation system;
+     (c) Automated crawling, scraping, or indexing of the Software
+         beyond what is strictly necessary for a search engine to
+         display standard result snippets;
+     (d) Vectorization, tokenization, or any pre-processing of the
+         Software for AI purposes.
+
+3.6  ACADEMIC AND COMMERCIAL EXPLOITATION
+     (a) Submitting the Software (or any derivative) as academic
+         work at any educational institution;
+     (b) Presenting the Software (or any derivative) as Your own
+         creation;
+     (c) Publishing the Software (or any derivative) in journals,
+         conferences, books, blogs, or presentations;
+     (d) Selling, licensing, sublicensing, renting, leasing, or
+         otherwise commercially exploiting the Software;
+     (e) Filing patent applications on any invention embodied in
+         the Software.
+
+3.7  SECURITY AND MALICIOUS USE
+     (a) Using the Software or any of its components (particularly
+         but not limited to Nmap adapters, Hydra usage patterns,
+         NSE scripts, attack simulation playbooks, and the
+         Operation Nightfall scenario) against any system, network,
+         or asset without the documented, prior, and unambiguous
+         authorization of the owner of that system;
+     (b) Using the Software as a tool of offensive cyber-security
+         against any target;
+     (c) Bypassing, disabling, or circumventing any security
+         mechanism, authentication, or authorization control
+         included in the Software;
+     (d) Using the Software to conduct unauthorized penetration
+         testing, vulnerability assessment, or red-team operations.
+
+3.8  REMOVAL OF NOTICES
+     (a) Removing, altering, or obscuring any copyright notice,
+         author attribution, license notice, or trademark notice
+         contained in or affixed to the Software;
+     (b) Removing, altering, or obscuring the ARGUS visual
+         identity, logo, or baseline;
+     (c) Rebranding the Software under a different name.
+
+========================================================================
+4. LIMITED PERSONAL VIEWING RIGHT
+========================================================================
+
+4.1  Notwithstanding the prohibitions of Section 3, the Author grants
+     any natural person a strictly limited, non-transferable,
+     non-sublicensable, revocable right to view the Software in its
+     public repository for the SOLE purpose of:
+         (a) educational learning (reading the code to understand
+             architectural or programming concepts);
+         (b) evaluating the technical work of the Author in the
+             context of academic, professional, or recruitment
+             assessments.
+
+4.2  This viewing right does NOT authorize:
+         (a) any of the activities listed in Section 3;
+         (b) storing local copies for any purpose other than
+             transient browser caching;
+         (c) sharing screenshots, code excerpts, or documentation
+             excerpts beyond fair-use quotation with attribution
+             to the Author;
+         (d) claiming any right, title, or interest in the Software.
+
+4.3  This viewing right may be revoked at any time by the Author,
+     with or without cause, and without prior notice.
+
+========================================================================
+5. REQUESTS FOR AUTHORIZATION
+========================================================================
+
+5.1  Any person or entity wishing to obtain a right beyond the limited
+     viewing right of Section 4 must submit a formal written request
+     to the Author, specifying:
+         (a) their full legal identity,
+         (b) the exact scope of the requested Use,
+         (c) the intended duration,
+         (d) the intended geographical scope,
+         (e) the intended technical environment,
+         (f) any commercial or financial terms proposed.
+
+5.2  The Author is under NO obligation to respond to, consider, or
+     grant any such request. Any absence of response shall be
+     construed as an implicit refusal.
+
+5.3  Any authorization granted shall be strictly limited to its
+     written terms and shall not be construed as a precedent for
+     future authorizations.
+
+========================================================================
+6. NO WARRANTY
+========================================================================
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
+NON-INFRINGEMENT.
+
+THE AUTHOR MAKES NO WARRANTY, REPRESENTATION, OR GUARANTEE THAT:
+    (a) the Software will meet Your requirements;
+    (b) the Software will operate without interruption or error;
+    (c) the Software is free of defects, vulnerabilities, or
+        security weaknesses;
+    (d) the Software is suitable for production use, commercial
+        use, or any use whatsoever;
+    (e) any defect in the Software will be corrected;
+    (f) the Software is compliant with any regulation, standard,
+        or certification (including but not limited to GDPR/RGPD,
+        ISO 27001, ISO 27002, PCI-DSS, HIPAA, SOC 2, or any
+        Tunisian national regulation).
+
+THE SOFTWARE IS AN ACADEMIC PROTOTYPE VALIDATED ONLY IN A LABORATORY
+ENVIRONMENT. IT HAS NOT BEEN AUDITED, CERTIFIED, OR VALIDATED FOR
+PRODUCTION USE.
+
+========================================================================
+7. LIMITATION OF LIABILITY
+========================================================================
+
+7.1  IN NO EVENT SHALL THE AUTHOR BE LIABLE TO YOU OR TO ANY THIRD
+     PARTY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+     PUNITIVE, OR CONSEQUENTIAL DAMAGES (INCLUDING BUT NOT LIMITED
+     TO LOSS OF PROFITS, LOSS OF DATA, LOSS OF BUSINESS, LOSS OF
+     GOODWILL, PROCUREMENT OF SUBSTITUTE SERVICES, SERVICE
+     INTERRUPTION, COMPUTER FAILURE, DATA BREACH, SECURITY INCIDENT,
+     REGULATORY FINE, OR ANY OTHER PECUNIARY LOSS) ARISING OUT OF
+     OR IN ANY WAY CONNECTED WITH:
+
+         (a) the use or inability to use the Software;
+         (b) any unauthorized access to or alteration of Your data;
+         (c) any statement or conduct of any third party regarding
+             the Software;
+         (d) any other matter relating to the Software.
+
+7.2  THIS LIMITATION APPLIES WHETHER THE ALLEGED LIABILITY IS BASED
+     ON CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY, OR
+     ANY OTHER LEGAL THEORY, AND EVEN IF THE AUTHOR HAS BEEN
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+7.3  YOU EXPRESSLY ACKNOWLEDGE AND AGREE THAT ANY USE OF THE
+     SOFTWARE FOR OFFENSIVE SECURITY PURPOSES, INTRUSION,
+     UNAUTHORIZED SCANNING, OR ANY OTHER MALICIOUS ACTIVITY IS
+     STRICTLY PROHIBITED AND SHALL BE ENTIRELY AND EXCLUSIVELY
+     UNDERTAKEN AT YOUR OWN RISK AND UNDER YOUR OWN LEGAL
+     RESPONSIBILITY. THE AUTHOR DISCLAIMS ANY AND ALL LIABILITY
+     FOR SUCH USE.
+
+========================================================================
+8. INDEMNIFICATION
+========================================================================
+
+You agree to indemnify, defend, and hold harmless the Author from and
+against any and all claims, damages, obligations, losses, liabilities,
+costs, or debt, and expenses (including but not limited to attorney's
+fees) arising from:
+
+    (a) Your Use of the Software in violation of this License;
+    (b) Your violation of any third-party right, including without
+        limitation any intellectual property or privacy right;
+    (c) Any claim that Your Use of the Software caused damage to
+        any third party.
+
+========================================================================
+9. TERMINATION
+========================================================================
+
+9.1  Any rights granted to You under this License (including the
+     limited viewing right of Section 4) shall terminate
+     AUTOMATICALLY AND IMMEDIATELY, WITHOUT NOTICE, upon any breach
+     of any provision of this License.
+
+9.2  Upon termination:
+         (a) You must immediately cease all Use of the Software;
+         (b) You must delete all copies of the Software in Your
+             possession or control (local clones, forks, backups,
+             caches, container images, derivatives);
+         (c) You must destroy all physical media containing the
+             Software;
+         (d) The obligations of Sections 6 (No Warranty),
+             7 (Limitation of Liability), 8 (Indemnification),
+             10 (Enforcement), 11 (Governing Law), and this
+             Section 9 shall survive termination.
+
+9.3  Termination does not preclude the Author from seeking any other
+     remedy available at law or in equity, including but not limited
+     to injunctive relief and monetary damages.
+
+========================================================================
+10. ENFORCEMENT
+========================================================================
+
+10.1 The Author reserves the right to pursue, in the widest extent
+     permitted by applicable law, any and all remedies against any
+     violation of this License, including but not limited to:
+         (a) DMCA takedown notices and equivalent procedures
+             under Tunisian, European, and international law;
+         (b) Civil actions for copyright infringement, breach of
+             contract, unjust enrichment, and unfair competition;
+         (c) Criminal complaints where applicable under Tunisian
+             Law No. 94-36 of 24 February 1994 relating to
+             literary and artistic property, and its subsequent
+             amendments;
+         (d) Injunctive relief to prevent ongoing or threatened
+             violations;
+         (e) Monetary damages equal to the greater of actual
+             damages, disgorgement of profits, or statutory
+             damages available under applicable law.
+
+10.2 The failure of the Author to enforce any provision of this
+     License at any given time shall not constitute a waiver of
+     the right to enforce that provision or any other provision
+     at any future time.
+
+========================================================================
+11. GOVERNING LAW AND JURISDICTION
+========================================================================
+
+11.1 This License shall be governed by, and construed in accordance
+     with, the laws of the Republic of Tunisia, without regard to
+     its conflict-of-laws principles.
+
+11.2 Any dispute arising out of or relating to this License, the
+     Software, or any Use thereof shall be submitted to the exclusive
+     jurisdiction of the competent courts of Tunis, Tunisia.
+
+11.3 Where the Software is Used outside Tunisia, You additionally
+     agree that the Author may, at the Author's sole discretion,
+     seek enforcement of this License under the intellectual property
+     laws of the jurisdiction in which the violation occurred.
+
+========================================================================
+12. INSTITUTIONAL CONTEXT — CLARIFICATION
+========================================================================
+
+12.1 The Software was created by the Author during a summer
+     internship at Gérance Informatique. This institutional context
+     does NOT grant Gérance Informatique, TEK-UP University, any of
+     their employees, students, or affiliates, or any other third
+     party, any right in the Software beyond what is expressly
+     granted by this License.
+
+12.2 In particular, the delivery of the Software or of the internship
+     report to the Host Company or to TEK-UP University does NOT
+     constitute:
+         (a) an assignment of copyright,
+         (b) an implicit license,
+         (c) a work-made-for-hire,
+         (d) a joint authorship,
+         (e) a transfer of any intellectual property right whatsoever.
+
+12.3 Any use of the Software by Gérance Informatique, TEK-UP
+     University, or their staff must be individually authorized in
+     writing by the Author, subject to Section 1.5 and Section 5.
+
+========================================================================
+13. SEVERABILITY AND ENTIRE AGREEMENT
+========================================================================
+
+13.1 If any provision of this License is held to be unenforceable
+     or invalid, such provision shall be enforced to the maximum
+     extent possible, and the remaining provisions shall continue
+     in full force and effect.
+
+13.2 This License constitutes the entire agreement between You and
+     the Author regarding the Software, and supersedes all prior or
+     contemporaneous communications, representations, or agreements,
+     whether oral or written.
+
+13.3 This License may only be modified by a written amendment
+     signed by the Author.
+
+========================================================================
+14. CONTACT
+========================================================================
+
+    Author:            TBINI Mustapha Amin
+    Repository:        https://github.com/Pablo-100/ARGUS_VOC
+    Contact channel:   Via GitHub issues on the aforementioned
+                       repository, or via the professional
+                       supervisor Mr. MDAOUKHI Adel (Gérance
+                       Informatique) for institutional matters.
+
+========================================================================
+
+                    END OF LICENSE — ALL RIGHTS RESERVED
+                              © 2026 TBINI Mustapha Amin
+
+========================================================================
